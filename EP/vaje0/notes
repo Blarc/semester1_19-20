@@ -1,0 +1,9 @@
+new project -> php -> php project
+NetBeansProjects -> Hello World - privzeto se tu naredijo projekti
+
+vsebuje index.php, ostalo so meta datoteke
+
+nobenga procesa ne poganjamo
+
+cutl http://localhost/netbeans/hello-world/index.php
+
