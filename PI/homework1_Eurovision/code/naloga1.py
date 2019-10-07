@@ -72,8 +72,19 @@ class Cluster:
 
 
 class HierarchicalClustering:
+    # TODO NORMALISE
     def __init__(self, data):
         self.data = data
+        for country in self.data.values():
+            sum_jury_points = sum(country.jury.values())
+            country.jury = [x / sum_jury_points for x in country.jury.values()]
+
+            sum_televoting_points = sum(country.televoting.values())
+            country.televoting = [x / sum_televoting_points for x in country.televoting.values()]
+
+            sum_total_points = sum(country.total.values())
+            country.total = [x / sum_total_points for x in country.total.values()]
+
         self.clusters = [Cluster(country) for country in self.data.values()]
 
     def row_distance(self, r1, r2):
@@ -87,7 +98,8 @@ class HierarchicalClustering:
     def row_distance_by_attribute(self, r1, r2, attribute):
         r1_points = data[r1].total[attribute]
         r2_points = data[r2].total[attribute]
-        return abs(r1_points - r2_points)
+        print(r1_points, r2_points, r1, r2)
+        return r1_points, r2_points
 
     def cluster_distance(self, c1, c2):
         """
@@ -102,15 +114,19 @@ class HierarchicalClustering:
     def closest_clusters_by_attribute(self, attribute):
         min_dist = 9999
         min_a, min_b = None, None
+        a_points, b_points = None, None
         for a in data:
-            for b in data:
-                if a is not b:
-                    dist = self.row_distance_by_attribute(a, b, attribute)
-                    if dist < min_dist:
-                        min_dist = dist
-                        min_a, min_b = a, b
+            if a != attribute:
+                for b in data:
+                    if a is not b:
+                        a_points, b_points = self.row_distance_by_attribute(a, b, attribute)
+                        dist = abs(a_points - b_points)
+                        if dist < min_dist:
+                            min_dist = dist
+                            min_a, min_b = a, b
+                            min_a_points, min_b_points = a_points, b_points
 
-        return min_a, min_b, min_dist
+        return min_a, min_b, min_dist, a_points, b_points
 
     def run(self):
         """
@@ -135,9 +151,11 @@ def draw_data(data):
 
     colors = plt.cm.get_cmap("gist_rainbow")(np.linspace(0, 1, data.values().__len__()))
 
+    attribute = "Germany"
     for color, country in zip(colors, data.values()):
         # country.draw_country(color)
-        country.draw_country_by_attribute(color, "Germany")
+        if country.name != attribute:
+            country.draw_country_by_attribute(color, attribute)
 
     plt.legend(bbox_to_anchor=(1.04, 1), loc="upper left")
 
@@ -149,7 +167,7 @@ def draw_data(data):
 
 
 if __name__ == "__main__":
-    DATA_FILE = "D:\\Jakob\\3letnik\\semester1\\PI\\homework1_Eurovision\\data\\eurovision-finals-1975-2019.csv"
+    DATA_FILE = "/home/jakob/Documents/semester1_19-20/PI/homework1_Eurovision/data/eurovision-finals-1975-2019.csv"
     data = read_file(DATA_FILE)
     hc = HierarchicalClustering(data)
     print(hc.closest_clusters_by_attribute("Germany"))
