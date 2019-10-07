@@ -3,6 +3,8 @@ from collections import defaultdict
 import matplotlib.pyplot as plt
 import numpy as np
 
+NORM_FACTOR = 100
+
 
 def read_file(file_name):
     """
@@ -19,6 +21,10 @@ def read_file(file_name):
             if country not in data:
                 data[country] = Country(country)
             data[country].add_voting(type_of_voting, to_country, points)
+
+    for country in data.values():
+        country.normalise()
+
     return data
 
 
@@ -38,6 +44,14 @@ class Country:
             self.televoting[to_country] += points
         self.total[to_country] += points
 
+    def normalise(self):
+        sum_televoting = sum(self.televoting.values()) / NORM_FACTOR
+        self.televoting = {k: v / sum_televoting for k, v in self.televoting.items()}
+        sum_jury = sum(self.jury.values()) / NORM_FACTOR
+        self.jury = {k: v / sum_jury for k, v in self.jury.items()}
+        sum_total = sum(self.total.values()) / NORM_FACTOR
+        self.total = {k: v / sum_total for k, v in self.total.items()}
+
     def draw_country(self, color, type_of_voting="default"):
         if type_of_voting == "J":
             countries = self.jury.keys()
@@ -49,14 +63,11 @@ class Country:
             countries = self.total.keys()
             points = self.total.values()
 
-        sum_of_points = sum(points)
-        points = [x / sum_of_points * 200 for x in points]
         plt.scatter(countries, points, s=80, color=color, label=self.name)
 
     def draw_country_by_attribute(self, color, attribute):
-        sum_of_points = sum(self.total.values())
-        plt.scatter(self.name, self.total[attribute] / sum_of_points * 800, s=80, color=color, label=self.name)
-        plt.annotate(self.name, (self.name, self.total[attribute] / sum_of_points * 800))
+        plt.scatter(self.name, self.total[attribute], s=80, color=color, label=self.name)
+        plt.annotate(self.name, (self.name, self.total[attribute]))
 
 
 class Cluster:
@@ -72,20 +83,9 @@ class Cluster:
 
 
 class HierarchicalClustering:
-    # TODO NORMALISE
     def __init__(self, data):
         self.data = data
-        for country in self.data.values():
-            sum_jury_points = sum(country.jury.values())
-            country.jury = [x / sum_jury_points for x in country.jury.values()]
-
-            sum_televoting_points = sum(country.televoting.values())
-            country.televoting = [x / sum_televoting_points for x in country.televoting.values()]
-
-            sum_total_points = sum(country.total.values())
-            country.total = [x / sum_total_points for x in country.total.values()]
-
-        self.clusters = [Cluster(country) for country in self.data.values()]
+        # self.clusters = [Cluster(country) for country in self.data.values()]
 
     def row_distance(self, r1, r2):
         """
@@ -96,10 +96,10 @@ class HierarchicalClustering:
         pass
 
     def row_distance_by_attribute(self, r1, r2, attribute):
-        r1_points = data[r1].total[attribute]
-        r2_points = data[r2].total[attribute]
+        r1_points = self.data[r1].total[attribute]
+        r2_points = self.data[r2].total[attribute]
         print(r1_points, r2_points, r1, r2)
-        return r1_points, r2_points
+        return abs(r1_points - r2_points)
 
     def cluster_distance(self, c1, c2):
         """
@@ -112,21 +112,18 @@ class HierarchicalClustering:
         pass
 
     def closest_clusters_by_attribute(self, attribute):
-        min_dist = 9999
-        min_a, min_b = None, None
-        a_points, b_points = None, None
-        for a in data:
-            if a != attribute:
-                for b in data:
-                    if a is not b:
-                        a_points, b_points = self.row_distance_by_attribute(a, b, attribute)
-                        dist = abs(a_points - b_points)
+        min_dist = float("inf")
+        min_country1, min_country2 = None, None
+        for country1 in self.data:
+            if country1 != attribute:
+                for country2 in self.data[country1].total:
+                    if country2 != attribute:
+                        dist = self.row_distance_by_attribute(country1, country2, attribute)
                         if dist < min_dist:
                             min_dist = dist
-                            min_a, min_b = a, b
-                            min_a_points, min_b_points = a_points, b_points
+                            min_country1, min_country2 = country1, country2
 
-        return min_a, min_b, min_dist, a_points, b_points
+        return min_country1, min_country2
 
     def run(self):
         """
@@ -158,17 +155,17 @@ def draw_data(data):
             country.draw_country_by_attribute(color, attribute)
 
     plt.legend(bbox_to_anchor=(1.04, 1), loc="upper left")
-
+    plt.title(attribute)
     plt.ylabel("Points")
-    plt.yticks(np.arange(0, 120, 2))
+    plt.yticks(np.arange(0, 20, 0.5))
     plt.xlabel("Countries")
     plt.xticks(rotation=90)
     plt.show()
 
 
 if __name__ == "__main__":
-    DATA_FILE = "/home/jakob/Documents/semester1_19-20/PI/homework1_Eurovision/data/eurovision-finals-1975-2019.csv"
-    data = read_file(DATA_FILE)
-    hc = HierarchicalClustering(data)
+    DATA_FILE = "D:/Jakob/3letnik/semester1/PI/homework1_Eurovision/data/eurovision-finals-1975-2019.csv"
+    normalised_data = read_file(DATA_FILE)
+    hc = HierarchicalClustering(normalised_data)
     print(hc.closest_clusters_by_attribute("Germany"))
-    draw_data(data)
+    draw_data(normalised_data)
