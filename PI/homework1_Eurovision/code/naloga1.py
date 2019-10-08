@@ -74,6 +74,9 @@ class Cluster:
     def __init__(self, case):
         self.cases = [case]
 
+    def add_cluster(self, cluster):
+        self.cases.extend(cluster.cases)
+
     def centeroid_by_attribute(self, attribute):
         result = 0
         for case in self.cases:
@@ -85,7 +88,11 @@ class Cluster:
 class HierarchicalClustering:
     def __init__(self, data):
         self.data = data
-        # self.clusters = [Cluster(country) for country in self.data.values()]
+        self.clusters = [Cluster(country) for country in self.data.values()]
+
+    def merge_clusters(self, c1, c2):
+        c1.add_cluster(c2)
+        self.clusters.remove(c2)
 
     def row_distance(self, r1, r2):
         """
@@ -95,11 +102,11 @@ class HierarchicalClustering:
         """
         pass
 
-    def row_distance_by_attribute(self, r1, r2, attribute):
-        r1_points = self.data[r1].total[attribute]
-        r2_points = self.data[r2].total[attribute]
-        print(r1_points, r2_points, r1, r2)
-        return abs(r1_points - r2_points)
+    @staticmethod
+    def cluster_distance_by_attribute(c1, c2, attribute):
+        c1_points = c1.centroid_by_attribute(attribute)
+        c2_points = c2.centroid_by_attribute(attribute)
+        return abs(c1_points - c2_points)
 
     def cluster_distance(self, c1, c2):
         """
@@ -113,9 +120,9 @@ class HierarchicalClustering:
 
     def closest_clusters_by_attribute(self, attribute):
         min_dist = float("inf")
-        min_country1, min_country2 = None, None
-        for country1 in self.data:
-            if country1 != attribute:
+        min_cluster_1, min_cluster_2 = None, None
+        for cluster_1 in self.clusters:
+            if cluster_2 != attribute:
                 for country2 in self.data[country1].total:
                     if country2 != attribute:
                         dist = self.row_distance_by_attribute(country1, country2, attribute)
@@ -167,5 +174,6 @@ if __name__ == "__main__":
     DATA_FILE = "D:/Jakob/3letnik/semester1/PI/homework1_Eurovision/data/eurovision-finals-1975-2019.csv"
     normalised_data = read_file(DATA_FILE)
     hc = HierarchicalClustering(normalised_data)
+    # hc.merge_clusters(hc.clusters[0], hc.clusters[1])
     print(hc.closest_clusters_by_attribute("Germany"))
     draw_data(normalised_data)
