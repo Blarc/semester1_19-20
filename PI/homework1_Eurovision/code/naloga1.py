@@ -14,16 +14,21 @@ def read_file(file_name):
     """
     with open(file_name) as f:
         header = f.readline().strip().split("\t")[1:]
+
         data = {}
+        columns = {}
         for line in f:
             row = line.strip().split(",")
-            type_of_voting, country, to_country, points = row[1], row[2], row[3], int(row[4])
-            if country not in data:
-                data[country] = Country(country)
-            data[country].add_voting(type_of_voting, to_country, points)
+            year, type_of_voting, country, to_country, points = int(row[0]), row[1], row[2], row[3], int(row[4])
+            col = (country, year)
+            if col not in columns:
+                columns[col] = 0
 
-    for country in data.values():
-        country.normalise()
+            # for line in f:
+            #    row = line.strip().split(",")
+            # type_of_voting, country, to_country, points = row[1], row[2], row[3], int(row[4])
+            # vote = []
+            # vote =
 
     return data
 
@@ -171,7 +176,8 @@ def draw_data(data):
 
 
 if __name__ == "__main__":
-    DATA_FILE = "D:/Jakob/3letnik/semester1/PI/homework1_Eurovision/data/eurovision-finals-1975-2019.csv"
+    windows = "D:/Jakob/3letnik/semester1/PI/homework1_Eurovision/data/eurovision-finals-1975-2019.csv"
+    DATA_FILE = "/home/jakob/Documents/semester1_19-20/PI/homework1_Eurovision/data/eurovision-finals-1975-2019.csv"
     normalised_data = read_file(DATA_FILE)
     hc = HierarchicalClustering(normalised_data)
     # hc.merge_clusters(hc.clusters[0], hc.clusters[1])
