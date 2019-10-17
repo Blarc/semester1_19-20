@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 from scipy.spatial import distance
 
-from .naloga1 import HierarchicalClustering
+from homework1_Eurovision.code.naloga1 import HierarchicalClustering
 
 DATA = {'Albert': [22.0, 81.0, 32.0, 39.0, 21.0, 37.0, 46.0, 36.0, 99.0],
         'Branka': [91.0, 95.0, 65.0, 96.0, 89.0, 39.0, 11.0, 22.0, 29.0],
@@ -101,6 +101,7 @@ class HierarchicalClusteringTest(unittest.TestCase):
         hc.row_distance = lambda a, b: distance.euclidean(
             self.data[a], self.data[b])
         hc.run()
+        hc.plot_tree()
 
         self.assertTrue(compare_trees(hc.clusters, CLUSTER_AVG_MAX) or
                         compare_trees(hc.clusters, CLUSTER_MIN))

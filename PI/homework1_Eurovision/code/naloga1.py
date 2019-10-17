@@ -1,4 +1,7 @@
+import math
+import platform
 from collections import defaultdict
+from itertools import combinations
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -12,28 +15,39 @@ def read_file(file_name):
     :param file_name: name of the file containing the data
     :return: dictionary with element names as keys and feature vectors as values
     """
-    with open(file_name) as f:
-        header = f.readline().strip().split("\t")[1:]
+    data = {}
+    columns = {}
+    columns_counter = 0
 
-        data = {}
-        columns = {}
+    with open(file_name) as f:
+        header = f.readline()
+
         for line in f:
             row = line.strip().split(",")
             year, type_of_voting, country, to_country, points = int(row[0]), row[1], row[2], row[3], int(row[4])
-            col = (country, year)
+            col = (to_country, year)
             if col not in columns:
-                columns[col] = 0
+                columns[col] = columns_counter
+                columns_counter += 1
 
-            # for line in f:
-            #    row = line.strip().split(",")
-            # type_of_voting, country, to_country, points = row[1], row[2], row[3], int(row[4])
-            # vote = []
-            # vote =
+    with open(file_name) as f:
+        header = f.readline()
+
+        for line in f:
+            row = line.strip().split(",")
+            year, type_of_voting, country, to_country, points = int(row[0]), row[1], row[2], row[3], int(row[4])
+            col = (to_country, year)
+            if country not in data:
+                data[country] = [None] * columns_counter
+            index = columns[col]
+            if data[country][index] is None:
+                data[country][index] = 0
+            data[country][index] += points
 
     return data
 
 
-class Country:
+class Case:
     def __init__(self, name):
         self.name = name
         self.televoting = defaultdict(int)
@@ -78,26 +92,35 @@ class Country:
 class Cluster:
     def __init__(self, case):
         self.cases = [case]
+        self.centeroid = case
 
     def add_cluster(self, cluster):
         self.cases.extend(cluster.cases)
-
-    def centeroid_by_attribute(self, attribute):
-        result = 0
-        for case in self.cases:
-            result += case.total[attribute]
-
-        return result / self.cases.__len__()
+        self.centeroid = [sum(x) / self.cases.__len__() for x in zip(*self.cases)]
 
 
 class HierarchicalClustering:
     def __init__(self, data):
+        self.dendrogram = {}
         self.data = data
-        self.clusters = [Cluster(country) for country in self.data.values()]
+        self.clusters = [[country] for country in self.data.keys()]
 
-    def merge_clusters(self, c1, c2):
-        c1.add_cluster(c2)
-        self.clusters.remove(c2)
+    @staticmethod
+    def calc_row_distance(row1, row2):
+
+        sum_of_attributes = 0
+        attributes_counter = 0
+        for i in range(0, len(row1)):
+            val1 = row1[i]
+            val2 = row2[i]
+            if val1 is not None and val2 is not None:
+                sum_of_attributes += pow(val1 - val2, 2)
+                attributes_counter += 1
+
+        # TODO normaliziraj
+        if attributes_counter == 0:
+            return 100
+        return math.sqrt(sum_of_attributes / attributes_counter)
 
     def row_distance(self, r1, r2):
         """
@@ -105,13 +128,9 @@ class HierarchicalClustering:
         Implement either Euclidean or Manhattan distance.
         Example call: self.row_distance("Polona", "Rajko")
         """
-        pass
-
-    @staticmethod
-    def cluster_distance_by_attribute(c1, c2, attribute):
-        c1_points = c1.centroid_by_attribute(attribute)
-        c2_points = c2.centroid_by_attribute(attribute)
-        return abs(c1_points - c2_points)
+        row1 = self.data[r1]
+        row2 = self.data[r2]
+        return self.calc_row_distance(row1, row2)
 
     def cluster_distance(self, c1, c2):
         """
@@ -121,21 +140,33 @@ class HierarchicalClustering:
             [[["Albert"], ["Branka"]], ["Cene"]],
             [["Nika"], ["Polona"]])
         """
-        pass
 
-    def closest_clusters_by_attribute(self, attribute):
-        min_dist = float("inf")
-        min_cluster_1, min_cluster_2 = None, None
-        for cluster_1 in self.clusters:
-            if cluster_2 != attribute:
-                for country2 in self.data[country1].total:
-                    if country2 != attribute:
-                        dist = self.row_distance_by_attribute(country1, country2, attribute)
-                        if dist < min_dist:
-                            min_dist = dist
-                            min_country1, min_country2 = country1, country2
+        c1 = flatten_list(c1)
+        c2 = flatten_list(c2)
 
-        return min_country1, min_country2
+        sum_distances = 0
+        for x in c1:
+            for y in c2:
+                sum_distances += self.row_distance(x, y)
+        return sum_distances / (c1.__len__() * c2.__len__())
+
+    def centroid_of(self, a):
+        if type(a[0][0]) is not list and type(a[1][0]) is not list:
+            return [sum(x) / 2 for x in zip(self.data[a[0][0]], self.data[a[1][0]])]
+        if type(a[0][0]) is not list:
+            return [sum(x) / 2 for x in zip(self.data[a[0][0]], self.centroid_of(a[1]))]
+        return [sum(x) / 2 for x in zip(self.centroid_of(a[0]), self.centroid_of(a[1]))]
+
+    def closest_clusters(self):
+        """
+        Find a pair of closest clusters and returns the pair of clusters and
+        their distance.
+
+        Example call: self.closest_clusters(self.clusters)
+        """
+        dis, pair = min((self.cluster_distance(c1, c2), (c1, c2))
+                        for c1, c2 in combinations(self.clusters, 2))
+        return dis, pair
 
     def run(self):
         """
@@ -145,14 +176,49 @@ class HierarchicalClustering:
         Store this later information into a suitable structure to be used
         for plotting of the hierarchical clustering.
         """
-        pass
+        while self.clusters.__len__() > 2:
+            dis, pair = self.closest_clusters()
+            one, two = pair
+            self.clusters.append([one, two])
+            self.clusters.remove(one)
+            self.clusters.remove(two)
+
+        self.dendrogram = {x: 0 for x in flatten_list(self.clusters)}
 
     def plot_tree(self):
         """
         Use cluster information to plot an ASCII representation of the cluster
         tree.
         """
-        pass
+        self.plot_tree_rec(self.clusters)
+        plt.bar(range(len(self.dendrogram)), list(self.dendrogram.values()), align="center")
+        plt.xticks(range(len(self.dendrogram)), list(self.dendrogram.keys()))
+        plt.xticks(rotation=90)
+        plt.show()
+
+    def draw_clusters(self, c1, c2):
+        dist = self.cluster_distance(c1, c2)
+        if len(c1) == 1:
+            self.dendrogram[c1[0]] = dist
+        if len(c2) == 1:
+            self.dendrogram[c2[0]] = dist
+
+    def plot_tree_rec(self, a):
+        if type(a[0][0]) is not list and type(a[1][0]) is not list:
+            self.draw_clusters(a[0], a[1])
+        elif type(a[0][0]) is not list:
+            self.draw_clusters(a[0], self.plot_tree_rec(a[1]))
+        elif type(a[0][1]) is not list:
+            self.draw_clusters(self.plot_tree_rec(a[0]), a[1])
+        else:
+            self.draw_clusters(self.plot_tree_rec(a[0]), self.plot_tree_rec(a[1]))
+        return a
+
+
+def flatten_list(a):
+    if type(a) is list:
+        return [x for i in a for x in flatten_list(i)]
+    return [a]
 
 
 def draw_data(data):
@@ -176,10 +242,11 @@ def draw_data(data):
 
 
 if __name__ == "__main__":
-    windows = "D:/Jakob/3letnik/semester1/PI/homework1_Eurovision/data/eurovision-finals-1975-2019.csv"
-    DATA_FILE = "/home/jakob/Documents/semester1_19-20/PI/homework1_Eurovision/data/eurovision-finals-1975-2019.csv"
+    DATA_FILE = "D:/Jakob/3letnik/semester1/PI/homework1_Eurovision/data/eurovision-finals-1975-2019.csv"
+    if platform.system() == "Linux":
+        DATA_FILE = "/home/jakob/Documents/semester1_19-20/PI/homework1_Eurovision/data/eurovision-finals-1975-2019.csv"
     normalised_data = read_file(DATA_FILE)
     hc = HierarchicalClustering(normalised_data)
-    # hc.merge_clusters(hc.clusters[0], hc.clusters[1])
-    print(hc.closest_clusters_by_attribute("Germany"))
-    draw_data(normalised_data)
+    hc.run()
+    hc.plot_tree()
+    print(hc.clusters)
