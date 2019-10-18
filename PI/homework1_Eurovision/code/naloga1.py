@@ -117,10 +117,9 @@ class HierarchicalClustering:
                 sum_of_attributes += pow(val1 - val2, 2)
                 attributes_counter += 1
 
-        # TODO normaliziraj
         if attributes_counter == 0:
-            return 100
-        return math.sqrt(sum_of_attributes / attributes_counter)
+            return -1
+        return math.sqrt((sum_of_attributes / attributes_counter) * len(row1))
 
     def row_distance(self, r1, r2):
         """
@@ -145,10 +144,17 @@ class HierarchicalClustering:
         c2 = flatten_list(c2)
 
         sum_distances = 0
+        counter = 0
         for x in c1:
             for y in c2:
-                sum_distances += self.row_distance(x, y)
-        return sum_distances / (c1.__len__() * c2.__len__())
+                dist = self.row_distance(x, y)
+                if dist != -1:
+                    sum_distances += dist
+                    counter += 1
+
+        if counter == 0:
+            return -1
+        return sum_distances / counter
 
     def centroid_of(self, a):
         if type(a[0][0]) is not list and type(a[1][0]) is not list:
@@ -164,9 +170,17 @@ class HierarchicalClustering:
 
         Example call: self.closest_clusters(self.clusters)
         """
-        dis, pair = min((self.cluster_distance(c1, c2), (c1, c2))
-                        for c1, c2 in combinations(self.clusters, 2))
-        return dis, pair
+        # min_dist, min_pair = min((self.cluster_distance(c1, c2), (c1, c2)) for c1, c2 in combinations(self.clusters, 2))
+
+        min_dist = 999
+        min_pair = (-1, -1)
+        for c1, c2 in combinations(self.clusters, 2):
+            dis, pair = self.cluster_distance(c1, c2), (c1, c2)
+            if -1 < dis < min_dist:
+                min_dist = dis
+                min_pair = pair
+
+        return min_dist, min_pair
 
     def run(self):
         """
@@ -248,5 +262,5 @@ if __name__ == "__main__":
     normalised_data = read_file(DATA_FILE)
     hc = HierarchicalClustering(normalised_data)
     hc.run()
-    hc.plot_tree()
+    # hc.plot_tree()
     print(hc.clusters)
