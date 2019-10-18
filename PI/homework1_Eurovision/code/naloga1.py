@@ -2,11 +2,8 @@ import math
 import platform
 from itertools import combinations
 
-import matplotlib.pyplot as plt
-import numpy as np
-
 NORM_FACTOR = 100
-
+OUT = open("out.txt", "w")
 
 def read_file(file_name):
 
@@ -42,7 +39,12 @@ def read_file(file_name):
     return data
 
 
+def flatten_list(a):
+    if type(a) is list:
+        return [x for i in a for x in flatten_list(i)]
+    return [a]
 class HierarchicalClustering:
+
     def __init__(self, data):
         self.data = data
         self.clusters = [[country] for country in self.data.keys()]
@@ -99,7 +101,7 @@ class HierarchicalClustering:
 
     def run(self):
 
-        while self.clusters.__len__() > 2:
+        while len(self.clusters) > 2:
             dis, pair = self.closest_clusters()
             one, two = pair
             self.clusters.append([one, two])
@@ -108,59 +110,22 @@ class HierarchicalClustering:
 
         # self.dendrogram = {x: 0 for x in flatten_list(self.clusters)}
 
-    def plot_tree(self):
-
-        self.plot_tree_rec(self.clusters)
-        # plt.bar(range(len(self.dendrogram)), list(self.dendrogram.values()), align="center")
-        # plt.xticks(range(len(self.dendrogram)), list(self.dendrogram.keys()))
-        plt.xticks(rotation=90)
-        plt.show()
-
-    def draw_clusters(self, c1, c2):
-        dist = self.cluster_distance(c1, c2)
-        if len(c1) == 1:
-            # self.dendrogram[c1[0]] = dist
-            pass
-        if len(c2) == 1:
-            # self.dendrogram[c2[0]] = dist
-            pass
-
-    def plot_tree_rec(self, a):
-        if type(a[0][0]) is not list and type(a[1][0]) is not list:
-            self.draw_clusters(a[0], a[1])
-        elif type(a[0][0]) is not list:
-            self.draw_clusters(a[0], self.plot_tree_rec(a[1]))
-        elif type(a[0][1]) is not list:
-            self.draw_clusters(self.plot_tree_rec(a[0]), a[1])
+    def plot_tree_rec(self, c, depth):
+        if len(c) == 1:
+            for i in range(0, depth):
+                print("    ", end="", file=OUT)
+            print("----" + c[0], file=OUT)
         else:
-            self.draw_clusters(self.plot_tree_rec(a[0]), self.plot_tree_rec(a[1]))
-        return a
+            self.plot_tree_rec(c[0], depth + 1)
+            for i in range(0, depth):
+                print("    ", end="", file=OUT)
+            print("----|", file=OUT)
+            self.plot_tree_rec(c[1], depth + 1)
 
+    def plot_tree(self):
+        # self.clusters = [self.clusters[1], self.clusters[0]]
+        self.plot_tree_rec(self.clusters, 0)
 
-def flatten_list(a):
-    if type(a) is list:
-        return [x for i in a for x in flatten_list(i)]
-    return [a]
-
-
-def draw_data(data):
-    plt.figure(figsize=(16, 12))
-
-    colors = plt.cm.get_cmap("gist_rainbow")(np.linspace(0, 1, data.values().__len__()))
-
-    attribute = "Germany"
-    for color, country in zip(colors, data.values()):
-        # country.draw_country(color)
-        if country.name != attribute:
-            country.draw_country_by_attribute(color, attribute)
-
-    plt.legend(bbox_to_anchor=(1.04, 1), loc="upper left")
-    plt.title(attribute)
-    plt.ylabel("Points")
-    plt.yticks(np.arange(0, 20, 0.5))
-    plt.xlabel("Countries")
-    plt.xticks(rotation=90)
-    plt.show()
 
 
 if __name__ == "__main__":
@@ -170,5 +135,6 @@ if __name__ == "__main__":
     normalised_data = read_file(DATA_FILE)
     hc = HierarchicalClustering(normalised_data)
     hc.run()
-    # hc.plot_tree()
+    hc.plot_tree()
     print(hc.clusters)
+    OUT.close()

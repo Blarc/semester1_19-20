@@ -1,0 +1,105 @@
+    ----North Macedonia
+----|
+        ----Australia
+    ----|
+                        ----Armenia
+                    ----|
+                            ----Bulgaria
+                        ----|
+                                ----Greece
+                            ----|
+                                ----Cyprus
+                ----|
+                        ----Azerbaijan
+                    ----|
+                                ----Turkey
+                            ----|
+                                ----Czech Republic
+                        ----|
+                                ----Georgia
+                            ----|
+                                    ----Ukraine
+                                ----|
+                                        ----Russia
+                                    ----|
+                                        ----Belarus
+            ----|
+                                ----Serbia
+                            ----|
+                                    ----Luxembourg
+                                ----|
+                                    ----Slovenia
+                        ----|
+                                ----Montenegro
+                            ----|
+                                    ----Croatia
+                                ----|
+                                        ----Bosnia & Herzegovina
+                                    ----|
+                                            ----F.Y.R. Macedonia
+                                        ----|
+                                            ----Serbia & Montenegro
+                    ----|
+                            ----Albania
+                        ----|
+                                ----Malta
+                            ----|
+                                ----Slovakia
+                ----|
+                                ----Spain
+                            ----|
+                                    ----Portugal
+                                ----|
+                                    ----Andorra
+                        ----|
+                                ----Romania
+                            ----|
+                                    ----Israel
+                                ----|
+                                    ----Moldova
+                    ----|
+                                    ----Poland
+                                ----|
+                                        ----Estonia
+                                    ----|
+                                            ----Lithuania
+                                        ----|
+                                            ----Latvia
+                            ----|
+                                        ----Ireland
+                                    ----|
+                                        ----United Kingdom
+                                ----|
+                                        ----Finland
+                                    ----|
+                                            ----Denmark
+                                        ----|
+                                                ----Norway
+                                            ----|
+                                                    ----Sweden
+                                                ----|
+                                                    ----Iceland
+                        ----|
+                                    ----Yugoslavia
+                                ----|
+                                        ----Monaco
+                                    ----|
+                                        ----Hungary
+                            ----|
+                                    ----France
+                                ----|
+                                            ----Belgium
+                                        ----|
+                                            ----The Netherlands
+                                    ----|
+                                            ----Switzerland
+                                        ----|
+                                                ----Germany
+                                            ----|
+                                                ----Austria
+        ----|
+                ----San Marino
+            ----|
+                    ----Italy
+                ----|
+                    ----Morocco
