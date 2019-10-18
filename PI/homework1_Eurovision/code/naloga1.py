@@ -1,6 +1,5 @@
 import math
 import platform
-from collections import defaultdict
 from itertools import combinations
 
 import matplotlib.pyplot as plt
@@ -47,63 +46,12 @@ def read_file(file_name):
     return data
 
 
-class Case:
-    def __init__(self, name):
-        self.name = name
-        self.televoting = defaultdict(int)
-        self.jury = defaultdict(int)
-        self.total = defaultdict(int)
-
-    def add_voting(self, type_of_voting, to_country, points):
-        if self.name == to_country:
-            return
-        elif type_of_voting == "J":
-            self.jury[to_country] += points
-        else:
-            self.televoting[to_country] += points
-        self.total[to_country] += points
-
-    def normalise(self):
-        sum_televoting = sum(self.televoting.values()) / NORM_FACTOR
-        self.televoting = {k: v / sum_televoting for k, v in self.televoting.items()}
-        sum_jury = sum(self.jury.values()) / NORM_FACTOR
-        self.jury = {k: v / sum_jury for k, v in self.jury.items()}
-        sum_total = sum(self.total.values()) / NORM_FACTOR
-        self.total = {k: v / sum_total for k, v in self.total.items()}
-
-    def draw_country(self, color, type_of_voting="default"):
-        if type_of_voting == "J":
-            countries = self.jury.keys()
-            points = self.jury.values()
-        elif type_of_voting == "T":
-            countries = self.televoting.keys()
-            points = self.televoting.values()
-        else:
-            countries = self.total.keys()
-            points = self.total.values()
-
-        plt.scatter(countries, points, s=80, color=color, label=self.name)
-
-    def draw_country_by_attribute(self, color, attribute):
-        plt.scatter(self.name, self.total[attribute], s=80, color=color, label=self.name)
-        plt.annotate(self.name, (self.name, self.total[attribute]))
-
-
-class Cluster:
-    def __init__(self, case):
-        self.cases = [case]
-        self.centeroid = case
-
-    def add_cluster(self, cluster):
-        self.cases.extend(cluster.cases)
-        self.centeroid = [sum(x) / self.cases.__len__() for x in zip(*self.cases)]
-
-
 class HierarchicalClustering:
     def __init__(self, data):
-        self.dendrogram = {}
         self.data = data
         self.clusters = [[country] for country in self.data.keys()]
+        self.row_distances = {frozenset((c1, c2)): self.row_distance(c1, c2) for c1, c2 in
+                              combinations(self.data.keys(), 2)}
 
     @staticmethod
     def calc_row_distance(row1, row2):
@@ -147,7 +95,7 @@ class HierarchicalClustering:
         counter = 0
         for x in c1:
             for y in c2:
-                dist = self.row_distance(x, y)
+                dist = self.row_distances[frozenset((x, y))]
                 if dist != -1:
                     sum_distances += dist
                     counter += 1
@@ -156,13 +104,6 @@ class HierarchicalClustering:
             return -1
         return sum_distances / counter
 
-    def centroid_of(self, a):
-        if type(a[0][0]) is not list and type(a[1][0]) is not list:
-            return [sum(x) / 2 for x in zip(self.data[a[0][0]], self.data[a[1][0]])]
-        if type(a[0][0]) is not list:
-            return [sum(x) / 2 for x in zip(self.data[a[0][0]], self.centroid_of(a[1]))]
-        return [sum(x) / 2 for x in zip(self.centroid_of(a[0]), self.centroid_of(a[1]))]
-
     def closest_clusters(self):
         """
         Find a pair of closest clusters and returns the pair of clusters and
@@ -170,7 +111,8 @@ class HierarchicalClustering:
 
         Example call: self.closest_clusters(self.clusters)
         """
-        # min_dist, min_pair = min((self.cluster_distance(c1, c2), (c1, c2)) for c1, c2 in combinations(self.clusters, 2))
+        # min_dist, min_pair = min((self.cluster_distance(c1, c2), (c1, c2))
+        # for c1, c2 in combinations(self.clusters, 2))
 
         min_dist = 999
         min_pair = (-1, -1)
@@ -197,7 +139,7 @@ class HierarchicalClustering:
             self.clusters.remove(one)
             self.clusters.remove(two)
 
-        self.dendrogram = {x: 0 for x in flatten_list(self.clusters)}
+        # self.dendrogram = {x: 0 for x in flatten_list(self.clusters)}
 
     def plot_tree(self):
         """
@@ -205,17 +147,19 @@ class HierarchicalClustering:
         tree.
         """
         self.plot_tree_rec(self.clusters)
-        plt.bar(range(len(self.dendrogram)), list(self.dendrogram.values()), align="center")
-        plt.xticks(range(len(self.dendrogram)), list(self.dendrogram.keys()))
+        # plt.bar(range(len(self.dendrogram)), list(self.dendrogram.values()), align="center")
+        # plt.xticks(range(len(self.dendrogram)), list(self.dendrogram.keys()))
         plt.xticks(rotation=90)
         plt.show()
 
     def draw_clusters(self, c1, c2):
         dist = self.cluster_distance(c1, c2)
         if len(c1) == 1:
-            self.dendrogram[c1[0]] = dist
+            # self.dendrogram[c1[0]] = dist
+            pass
         if len(c2) == 1:
-            self.dendrogram[c2[0]] = dist
+            # self.dendrogram[c2[0]] = dist
+            pass
 
     def plot_tree_rec(self, a):
         if type(a[0][0]) is not list and type(a[1][0]) is not list:
