@@ -9,11 +9,7 @@ NORM_FACTOR = 100
 
 
 def read_file(file_name):
-    """
-    Read and process data to be used for clustering.
-    :param file_name: name of the file containing the data
-    :return: dictionary with element names as keys and feature vectors as values
-    """
+
     data = {}
     columns = {}
     columns_counter = 0
@@ -53,8 +49,10 @@ class HierarchicalClustering:
         self.row_distances = {frozenset((c1, c2)): self.row_distance(c1, c2) for c1, c2 in
                               combinations(self.data.keys(), 2)}
 
-    @staticmethod
-    def calc_row_distance(row1, row2):
+    def row_distance(self, r1, r2):
+
+        row1 = self.data[r1]
+        row2 = self.data[r2]
 
         sum_of_attributes = 0
         attributes_counter = 0
@@ -69,24 +67,7 @@ class HierarchicalClustering:
             return -1
         return math.sqrt((sum_of_attributes / attributes_counter) * len(row1))
 
-    def row_distance(self, r1, r2):
-        """
-        Distance between two rows.
-        Implement either Euclidean or Manhattan distance.
-        Example call: self.row_distance("Polona", "Rajko")
-        """
-        row1 = self.data[r1]
-        row2 = self.data[r2]
-        return self.calc_row_distance(row1, row2)
-
     def cluster_distance(self, c1, c2):
-        """
-        Compute distance between two clusters.
-        Implement either single, complete, or average linkage.
-        Example call: self.cluster_distance(
-            [[["Albert"], ["Branka"]], ["Cene"]],
-            [["Nika"], ["Polona"]])
-        """
 
         c1 = flatten_list(c1)
         c2 = flatten_list(c2)
@@ -105,14 +86,6 @@ class HierarchicalClustering:
         return sum_distances / counter
 
     def closest_clusters(self):
-        """
-        Find a pair of closest clusters and returns the pair of clusters and
-        their distance.
-
-        Example call: self.closest_clusters(self.clusters)
-        """
-        # min_dist, min_pair = min((self.cluster_distance(c1, c2), (c1, c2))
-        # for c1, c2 in combinations(self.clusters, 2))
 
         min_dist = 999
         min_pair = (-1, -1)
@@ -125,13 +98,7 @@ class HierarchicalClustering:
         return min_dist, min_pair
 
     def run(self):
-        """
-        Given the data in self.data, performs hierarchical clustering.
-        Can use a while loop, iteratively modify self.clusters and store
-        information on which clusters were merged and what was the distance.
-        Store this later information into a suitable structure to be used
-        for plotting of the hierarchical clustering.
-        """
+
         while self.clusters.__len__() > 2:
             dis, pair = self.closest_clusters()
             one, two = pair
@@ -142,10 +109,7 @@ class HierarchicalClustering:
         # self.dendrogram = {x: 0 for x in flatten_list(self.clusters)}
 
     def plot_tree(self):
-        """
-        Use cluster information to plot an ASCII representation of the cluster
-        tree.
-        """
+
         self.plot_tree_rec(self.clusters)
         # plt.bar(range(len(self.dendrogram)), list(self.dendrogram.values()), align="center")
         # plt.xticks(range(len(self.dendrogram)), list(self.dendrogram.keys()))
@@ -200,7 +164,7 @@ def draw_data(data):
 
 
 if __name__ == "__main__":
-    DATA_FILE = "D:/Jakob/3letnik/semester1/PI/homework1_Eurovision/data/eurovision-finals-1975-2019.csv"
+    DATA_FILE = "D:\Jakob\\3letnik\semester1\git\PI\homework1_Eurovision\data\eurovision-finals-1975-2019.csv"
     if platform.system() == "Linux":
         DATA_FILE = "/home/jakob/Documents/semester1_19-20/PI/homework1_Eurovision/data/eurovision-finals-1975-2019.csv"
     normalised_data = read_file(DATA_FILE)
