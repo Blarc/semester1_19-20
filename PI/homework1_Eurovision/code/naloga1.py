@@ -5,10 +5,28 @@ from itertools import combinations
 NORM_FACTOR = 100
 OUT = open("out.txt", "w")
 
-def read_file(file_name):
+GROUPS = [
+    ['San Marino'],
+    ['Australia'],
+    ['North Macedonia'],
+    [['Italy'], ['Morocco']],
+    [[['Serbia'], [['Luxembourg'], ['Slovenia']]],
+     [['Montenegro'], [['Croatia'], [['Bosnia & Herzegovina'], [['F.Y.R. Macedonia'], ['Serbia & Montenegro']]]]]],
+    [[['Poland'], [['Estonia'], [['Lithuania'], ['Latvia']]]],
+     [[['Ireland'], ['United Kingdom']], [['Finland'], [['Denmark'], [['Norway'], [['Sweden'], ['Iceland']]]]]]],
+    [[['Spain'], [['Portugal'], ['Andorra']]], [['Romania'], [['Israel'], ['Moldova']]]],
+    [['Armenia'], [['Bulgaria'], [['Greece'], ['Cyprus']]]],
+    [['Azerbaijan'], [[['Turkey'], ['Czech Republic']], [['Georgia'], [['Ukraine'], [['Russia'], ['Belarus']]]]]],
+    [[['Yugoslavia'], [['Monaco'], ['Hungary']]],
+     [['France'], [[['Belgium'], ['The Netherlands']], [['Switzerland'], [['Germany'], ['Austria']]]]]],
+    [['Albania'], [['Malta'], ['Slovakia']]]
+]
 
-    data = {}
-    columns = {}
+columns = {}
+data = {}
+
+
+def read_file(file_name):
     columns_counter = 0
 
     with open(file_name) as f:
@@ -107,6 +125,12 @@ class HierarchicalClustering:
             self.clusters.append([one, two])
             self.clusters.remove(one)
             self.clusters.remove(two)
+            # print("dis: " + str(dis))
+            # print("pair: " + str(pair))
+            # print("len: " + str(len(self.clusters)))
+            # print(self.clusters)
+            # for abc in self.clusters:
+            #     print(abc)
 
         # self.dendrogram = {x: 0 for x in flatten_list(self.clusters)}
 
@@ -138,3 +162,21 @@ if __name__ == "__main__":
     hc.plot_tree()
     print(hc.clusters)
     OUT.close()
+
+    print(len(GROUPS))
+    for group in GROUPS:
+        flat = flatten_list(group)
+        dictA = {x: 0 for x in data.keys()}
+        for count in flat:
+            i = 0
+            for col in data[count]:
+                to_country, year = list(columns.keys())[i]
+                i += 1
+                if col is not None:
+                    dictA[to_country] += col
+
+        print(group)
+        import operator
+
+        sorted_dictA = sorted(dictA.items(), key=operator.itemgetter(1), reverse=True)
+        print(sorted_dictA[:3], sorted_dictA[-3:])
