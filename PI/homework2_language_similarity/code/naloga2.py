@@ -1,7 +1,9 @@
 import math
 import os
 import platform
+import random
 from collections import defaultdict
+from itertools import combinations
 
 from unidecode import unidecode
 
@@ -28,12 +30,15 @@ def read_files(dir_path):
         for i in range(0, len(data) - 2):
             data_dict[file_name][data[i:i + 3]] += 1
 
-        return data_dict
+    return data_dict
 
 
 class MedoidClustering:
     def __init__(self, data):
         self.data = data
+
+        self.point_distances = {frozenset((c1, c2)): self.point_distance(c1, c2) for c1, c2 in
+                                combinations(self.data.keys(), 2)}
         self.clusters = None
 
     def point_distance(self, r1, r2):
@@ -62,16 +67,25 @@ class MedoidClustering:
     def closest_clusters(self):
         pass
 
-    def run(self):
+    def get_random_leaders(self, k):
+        leaders = []
+        keys_list = list(self.data.keys())
+        while len(leaders) != k:
+            leader = random.choice(keys_list)
+            keys_list.remove(leader)
+            leaders.append(leader)
+
+        return leaders
+
+    def run(self, k):
         pass
 
-
 if __name__ == "__main__":
-    DIR = "one"
-    DIR_PATH = "D:\Jakob\\3letnik\semester1\git\PI\homework2_language_similarity\data\one"
+    DIR = "test"
+    DIR_PATH = "D:\Jakob\\3letnik\semester1\git\PI\homework2_language_similarity\data\\test"
     if platform.system() == "Linux":
         DIR_PATH = "/home/jakob/Documents/semester1_19-20/PI/homework2_language_similarity/data/" + DIR
     readData = read_files(DIR_PATH)
     mc = MedoidClustering(readData)
-    mc.point_distance("slv", "slv")
+    mc.run(5)
     print("done")
