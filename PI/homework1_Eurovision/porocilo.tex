@@ -73,7 +73,7 @@ backgroundcolor=\color{light-gray},
 Pri tej nalogi smo analizirali glasovanja za Pesem Evrovizije. Predstavniki posameznih držav naj bi glasovali pristransko in pri tem favorizirali nastopajoče iz bližnjih ali sorodnih držav. Cilj naloge je bil preveriti ali to drži.
 
 \subsection{Podatki.}
-Podatki o glasovanjih za Pesem Evrovizije so bili podani v obliki csv datoteke. V datoteki je bilo zapisanih okol 33 tisoč vrstic. Vsaka vrstica je vsebovala leto glasovanja, tip glasovanja, katera država je glasovala, za katero državo je glasovala ter koliko točk ji je podelila. Točke posameznega glasovanja so se gibale med 1 in 12. Ker je bil razpon let med 1975 do 2019, so se nekatere države pojavile večkrat kot druge.
+Podatki o glasovanjih za Pesem Evrovizije so bili podani v obliki csv datoteke. V datoteki je bilo zapisanih okoli 33 tisoč vrstic. Vsaka vrstica je vsebovala leto glasovanja, tip glasovanja, katera država je glasovala, za katero državo je glasovala ter koliko točk ji je podelila. Točke posameznega glasovanja so se gibale med 1 in 12. Ker je bil razpon let med 1975 do 2019, so se nekatere države pojavile večkrat kot druge.
 
 \section{Luščenje profilov glasovanj.}
 Datoteko s podatki sem prebral dvakrat. Ko sem prvič šel čez vse vrstice, sem določil vse atribute oz. stolpce. Vsak stolpec je predstavljal svoje leto glasovanja ter državo za katero je bilo glasovano. Tako sem dobil čez tisoč različnih atributov, po katerih sem profile kasneje primerjal. Ko sem drugič bral datoteko, sem za vsako državo naredil slovar, ki je vseboval prej omenjene atribute, ter vnesel vrednosti le teh. Tako pripravljen slovar, sem nato uporabil pri gručenju.
@@ -87,7 +87,7 @@ Računanje razdalje med profili mi je predstavljalo največjo oviro pri gručenj
 \newpage
 \begin{lstlisting}
 
-    # racunanje razdalje med profili
+# racunanje razdalje med profili
 # r1 ter r2 sta imeni drzav
 def row_distance(self, r1, r2):
 
@@ -97,15 +97,15 @@ def row_distance(self, r1, r2):
     sum_of_attributes = 0
     attributes_counter = 0
     for i in range(0, len(row1)):
-    val1 = row1[i]
-    val2 = row2[i]
-    # tu preverimo ce atribut obstaja pri obeh profilih
-    if val1 is not None and val2 is not None:
-    sum_of_attributes += pow(val1 - val2, 2)
-    attributes_counter += 1
+        val1 = row1[i]
+        val2 = row2[i]
+        # tu preverimo ce atribut obstaja pri obeh profilih
+        if val1 is not None and val2 is not None:
+            sum_of_attributes += pow(val1 - val2, 2)
+            attributes_counter += 1
 
     if attributes_counter == 0:
-    return -1
+        return -1
     # normalizacija
     return math.sqrt((sum_of_attributes / attributes_counter) * len(row1))
 
@@ -120,21 +120,125 @@ Iskanje najkrajše razdalje med dvema gručama je bilo tedaj preprosto. Izračun
 \subsection{Združevanje v gruče.}
 Gruče je bilo tedaj enostavno zgraditi. Potrebna je bila zgolj ena while zanka, ki je poiskala najpodobnejše gruče in jih združevala dokler ni ostala ena sama gruča.
 
+\newpage
+
 \section{Dendrogram.}
 Naloga je zahtevala tudi izris dendrograma. Na dendrogramu lahko vidimo razdalje med posameznimi profili in sami poizkusimo določiti število gruč.
 
-\begin{figure}[htbp]
-\begin{center}
-    \includegraphics[scale=0.3]{slika-dendrogram.png}
-    \caption{Dendrogram.}
-\label{slika1}
-\end{center}
-\end{figure}
+\begin{lstlisting}
+
+    ----North Macedonia
+----|
+        ----Australia
+    ----|
+                        ----Armenia
+                    ----|
+                            ----Bulgaria
+                        ----|
+                                ----Greece
+                            ----|
+                                ----Cyprus
+                ----|
+                        ----Azerbaijan
+                    ----|
+                                ----Turkey
+                            ----|
+                                ----Czech Republic
+                        ----|
+                                ----Georgia
+                            ----|
+                                    ----Ukraine
+                                ----|
+                                        ----Russia
+                                    ----|
+                                        ----Belarus
+            ----|
+                                ----Serbia
+                            ----|
+                                    ----Luxembourg
+                                ----|
+                                    ----Slovenia
+                        ----|
+                                ----Montenegro
+                            ----|
+                                    ----Croatia
+                                ----|
+                                        ----Bosnia & Herzegovina
+                                    ----|
+                                            ----F.Y.R. Macedonia
+                                        ----|
+                                            ----Serbia & Montenegro
+                    ----|
+                            ----Albania
+                        ----|
+                                ----Malta
+                            ----|
+                                ----Slovakia
+                ----|
+                                ----Spain
+                            ----|
+                                    ----Portugal
+                                ----|
+                                    ----Andorra
+                        ----|
+                                ----Romania
+                            ----|
+                                    ----Israel
+                                ----|
+                                    ----Moldova
+                    ----|
+                                    ----Poland
+                                ----|
+                                        ----Estonia
+                                    ----|
+                                            ----Lithuania
+                                        ----|
+                                            ----Latvia
+                            ----|
+                                        ----Ireland
+                                    ----|
+                                        ----United Kingdom
+                                ----|
+                                        ----Finland
+                                    ----|
+                                            ----Denmark
+                                        ----|
+                                                ----Norway
+                                            ----|
+                                                    ----Sweden
+                                                ----|
+                                                    ----Iceland
+                        ----|
+                                    ----Yugoslavia
+                                ----|
+                                        ----Monaco
+                                    ----|
+                                        ----Hungary
+                            ----|
+                                    ----France
+                                ----|
+                                            ----Belgium
+                                        ----|
+                                            ----The Netherlands
+                                    ----|
+                                            ----Switzerland
+                                        ----|
+                                                ----Germany
+                                            ----|
+                                                ----Austria
+        ----|
+                ----San Marino
+            ----|
+                    ----Italy
+                ----|
+                    ----Morocco
+
+\end{lstlisting}
 
 \newpage
 \section{Rezultati.}
 
-Sam sem določil 11 gruč oz. skupin, ki vsebujejo države, ki so podobno glasovale skozi leta 1975 do 2019. V tabeli~\ref{tab1} lahko za vsako skupino vidimo 3 najbolj preferirane države ter 3 države katerim je namenila najmanj točk.
+Sam sem določil 11 gruč oz. skupin, ki vsebujejo države, ki so podobno glasovale skozi leta 1975 do 2019. Skupine sem določil tako, da sem izpisoval različno število skupin in gledal kdaj so bile, glede na domensko znanje, najbolj smiselne. V tabeli~\ref{tab1} lahko za vsako skupino vidimo 3 najbolj preferirane države ter 3 države katerim je skupina namenila najmanj točk.
 
 \subsection{Skupina 1.}
 San Marino
@@ -161,23 +265,23 @@ Albania, Malta, Slovakia
 \newpage
 
 \begin{table}[htbp]
-    \caption{Gruče ter njihove značilnosti.}
+\caption{Gruče ter njihove značilnosti.}
 \label{tab1}
 \begin{center}
-    \begin{tabular}{llp{6cm}}
+\begin{tabular}{llp{6cm}}
 \hline
 skupina & preferirane države & ne glasujejo \\
-Skupina 1 & Italy, Greece, Russia & Serbia \& Montenegro, Montenegro, San Marino. \\
-Skupina 2 & Sweden, Belgium, Bulgaria & Montenegro, San Marino, Australia. \\
+Skupina 1 & Italy, Portugal, Greece & Serbia \& Montenegro, Montenegro, San Marino. \\
+Skupina 2 & Iceland, Moldova, Ireland & Montenegro, San Marino, Australia. \\
 Skupina 3 & Albania, Italy, The Netherlands & Georgia, Montenegro, North Macedonia. \\
-Skupina 4 & France, United Kingdom, Spain & Serbia \& Montenegro, Montenegro, San Marino. \\
-Skupina 5 & Serbia, Bosnia \& Herzegovina, Croatia & Luxembourg, Morocco, Andorra. \\
-Skupina 6 & Sweden, Norway, Denmark & San Marino, Morocco, Andorra \\
-Skupina 7 & Sweden, Italy, Germany & Morocco, Andorra, Montenegro \\
-Skupina 8 & Greece, Russia, Cyprus & Slovakia, Morocco, Andorra \\
-Skupina 9 & Russia, Ukraine, Azerbaijan & Morocco, Slovakia, Andorra \\
-Skupina 10 & Sweden, United Kingdom, Israel & Slovakia, Andorra, Montenegro \\
-Skupina 11 & Italy, Greece, Sweden & Monaco, Morocco, Andorra \\
+Skupina 4 & North Macedonia, Albania, Moldova & Serbia \& Montenegro, Montenegro, San Marino. \\
+Skupina 5 & North Macedonia, Serbia, Serbia \& Montenegro & Luxembourg, Morocco, Andorra. \\
+Skupina 6 & Australia, Bulgaria, North Macedonia & F.Y.R. Macedonia, Morocco, Andorra \\
+Skupina 7 & Bulgaria, Australia, Romania & Morocco, Andorra, Montenegro \\
+Skupina 8 & Cyprus, Greece, Bulgaria & Bosnia \& Herzegovina, Morocco, Andorra \\
+Skupina 9 & Azerbaijan, Ukraine, Russia & Morocco, Slovakia, Andorra \\
+Skupina 10 & North Macedonia, Serbia \& Montenegro, Australia & Slovakia, Andorra, Montenegro \\
+Skupina 11 & North Macedonia, Bulgaria, Italy & Georgia, Morocco, Andorra \\
 \hline
 \end{tabular}
 \end{center}
