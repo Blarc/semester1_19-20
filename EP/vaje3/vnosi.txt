@@ -1,0 +1,10 @@
+# Sklop 1
+# HTML in CSS
+<p><b>Nov odsek na odebeljen naÄin!</b></p>
+<p><a href="http://www.fri.uni-lj.si">Fakulteta za raÄunalniĹĄtvo in informatiko</a></p>
+<p style="position: relative; width:250px; padding: 50px 50px 50px 50px; font-size: 25pt; font-weight:bold; font-style:italic; color:#D5FAFF; background-color:#2FDCFF; border-style: solid dashed double inset; border-width:10px 5px 5px 10px; border-color:blue;">Uporaba Cascading Style Sheets
+<p> Pirat priĹžge vĹžigalno vrvico in izstreli topovsko kroglo. Preko gladine morja zadoni glasen zvok: <script>alert('BUM');</script>
+
+# Sklop2
+# JavaScript 2
+http://localhost/netbeans/jokes/reseno_index.php/%22%3E%3Cscript%3Ealert%28%27Izvajanje%20kode%20JavaScript%20in%20mo%C5%BEnost%20napada%20XSS%27%29%3C/script%3E/%22%3E%3Cscript%3Ealert%28%27Izvajanje%20kode%20JavaScript%20in%20moĹžnost%20napada%20XSS%27%29%3C/script%3E
