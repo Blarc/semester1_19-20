@@ -217,13 +217,14 @@ shd	Shona
 shp	Shipibo-Conibo
 slo	Slovak (Slovencina)
 slv	Slovenian (Slovenscina)
+slv2	Slovenian2 (Slovenscina)
 smy	Samoan
 snn	Soninké (Soninkanxaane)
 som	Somali
 spn	Spanish (Español); Español (Spanish)
-src1	Bosnian (Latin script)
+src1	BosnianLatin (Latin script)
 src3	Serbian (Latin) (Srpski)
-src4	Bosnian (Cyrillic script)
+src4	BosnianCyrillic (Cyrillic script)
 src5	Serbian (Cyrillic) (Srpski)
 srd	Sardinian
 srt	Northern Sotho/Pedi/Sepedi
