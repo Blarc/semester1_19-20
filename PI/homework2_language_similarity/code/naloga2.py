@@ -2,10 +2,11 @@ import math
 import os
 import platform
 import random
-import sys
 from collections import defaultdict
 from itertools import combinations
 
+import matplotlib.pyplot as plt
+import numpy as np
 from unidecode import unidecode
 
 
@@ -60,7 +61,7 @@ class MedoidClustering:
             if key in dict_r2:
                 product_r1_r2 += (dict_r1[key] * dict_r2[key])
 
-        return 1 - (product_r1_r2 / (self.point_len(r1) * self.point_len(r2)))
+        return product_r1_r2 / (self.point_len(r1) * self.point_len(r2))
 
     def point_len(self, r1):
         dict_r1 = self.data[r1]
@@ -84,26 +85,44 @@ class MedoidClustering:
     def make_clusters(self, leaders):
         for c in self.data.keys():
             if c not in leaders:
-                min_dist = sys.maxsize
-                min_leader = None
+                max_dist = -99999
+                max_leader = None
                 for leader in leaders:
                     dist = self.point_distances[frozenset((leader, c))]
-                    if dist < min_dist:
-                        min_dist = dist
-                        min_leader = leader
+                    if dist > max_dist:
+                        max_dist = dist
+                        max_leader = leader
 
-                leaders[min_leader].append(c)
+                leaders[max_leader].append(c)
 
-    def get_best_leader(self, cluster):
-        _, leader = min([(self.sum_all_distances(a, cluster), a) for a in cluster])
+    def get_best_leader(self, a_cluster):
+        _, leader = max([(self.similarity_cluster(a, a_cluster), a) for a in a_cluster])
         return leader
 
-    def sum_all_distances(self, a, cluster):
-        sum_a = 0
-        for b in cluster:
+    def similarity_cluster(self, a, a_cluster):
+        sum_similarity = 0
+        for b in a_cluster:
             if a != b:
-                sum_a += self.point_distances[frozenset((a, b))]
-        return sum_a
+                sum_similarity += self.point_distances[frozenset((a, b))]
+        if sum_similarity == 0:
+            return 0
+        return sum_similarity / (len(a_cluster) - 1)
+
+    def mean_all(self, a, a_cluster):
+        sum_similarity = 0
+        for b in a_cluster:
+            sum_similarity += self.point_distances[frozenset((a, b))]
+        return sum_similarity / len(a_cluster)
+
+    def similarity_all(self, a, a_leader, clusters):
+        max_similarity = -99999
+        for leader in clusters:
+            if leader != a_leader:
+                similarity = self.mean_all(a, clusters[leader])
+                if similarity > max_similarity:
+                    max_similarity = similarity
+
+        return max_similarity
 
     def run(self):
         leaders = self.get_random_leaders()
@@ -125,6 +144,38 @@ class MedoidClustering:
 
         return leaders
 
+    def draw_histogram(self, clusters):
+        sorted_leaders = sorted([(self.similarity_cluster(leader, cluster), leader)
+                                 for leader, cluster in clusters.items()])
+        data = [sorted([(self.similarity_cluster(lang, clusters[leader]), lang, leader)
+                        for lang in clusters[leader]]) for _, leader in sorted_leaders]
+        # print(data)
+
+        cmap = plt.get_cmap(name="rainbow", lut=self.k)
+
+        vals = [val for cluster in data for val, _, _ in cluster]
+        # print(vals)
+
+        plt.rcdefaults()
+        fig, ax = plt.subplots()
+        ax.set_xlim(-0.1, max(vals) + 0.2)
+        plt.xticks(np.arange(-0.1, max(vals) + 0.2, 0.2), rotation="vertical")
+
+        index = 0
+        for i, cluster in enumerate(data):
+            # print(cluster)
+            for val, lang, leader in cluster:
+                ax.barh(lang, val, color=cmap(i), label="hello")
+                index += 1
+
+        plt.show()
+
+    def silhouette(self, a, a_leader, a_cluster, clusters):
+        if len(a_cluster) > 1:
+            similarity_cluster = self.similarity_cluster(a, a_cluster)
+            similarity_all = self.similarity_all(a, a_leader, clusters)
+            return (similarity_cluster - similarity_all) / max(similarity_cluster, similarity_all)
+        return 0
 
 if __name__ == "__main__":
     DIR = "test"
@@ -136,4 +187,6 @@ if __name__ == "__main__":
     readData = read_files(INDEX_PATH, DIR_PATH)
     mc = MedoidClustering(readData, 5)
     result = mc.run()
+    print(result)
+    mc.draw_histogram(result)
     print("done")
