@@ -31,15 +31,17 @@ class Point:
 
         return scalar_product / (self.point_length() * point.point_length())
 
+    def get_leader(self):
+        return self.cluster.leader
+
     def is_leader(self):
-        return self.cluster.leader == self
+        return self.cluster != None and self.get_leader() == self
 
 
 class Cluster:
     def __init__(self, leader: Point):
         self.leader = leader
         self.points = [leader]
-        leader.leader = leader
         leader.cluster = self
 
     def add_point(self, point: Point):
@@ -51,7 +53,6 @@ class Cluster:
     def reset(self, new_leader: Point):
         self.leader = new_leader
         self.points = [new_leader]
-        new_leader.leader = new_leader
         new_leader.cluster = self
 
     def __repr__(self):
@@ -93,7 +94,7 @@ class MedoidClustering:
     def similarity_with_best_neighbour(self, a: Point):
         best_similarity = -9999
         for cluster in self.clusters:
-            if cluster.leader != a.leader:
+            if cluster.leader != a.get_leader():
                 similarity = self.similarity_with_cluster(a, cluster, False)
                 if similarity > best_similarity:
                     best_similarity = similarity
@@ -171,7 +172,7 @@ if __name__ == "__main__":
     INDEX_PATH = "D:\Jakob\\3letnik\semester1\git\PI\homework2_language_similarity\data\INDEX.txt"
     if platform.system() == "Linux":
         DIR_PATH = "/home/jakob/Documents/semester1_19-20/PI/homework2_language_similarity/data/" + DIR
-        INDEX_PATH = None
+        INDEX_PATH = "/home/jakob/Documents/semester1_19-20/PI/homework2_language_similarity/data/INDEX.txt"
     readData = read_files(INDEX_PATH, DIR_PATH)
     mc = MedoidClustering(readData, 5)
     mc.run()

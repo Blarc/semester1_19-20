@@ -183,7 +183,7 @@ if __name__ == "__main__":
     INDEX_PATH = "D:\Jakob\\3letnik\semester1\git\PI\homework2_language_similarity\data\INDEX.txt"
     if platform.system() == "Linux":
         DIR_PATH = "/home/jakob/Documents/semester1_19-20/PI/homework2_language_similarity/data/" + DIR
-        INDEX_PATH = None
+        INDEX_PATH = "/home/jakob/Documents/semester1_19-20/PI/homework2_language_similarity/data/INDEX.txt"
     readData = read_files(INDEX_PATH, DIR_PATH)
     mc = MedoidClustering(readData, 5)
     result = mc.run()
