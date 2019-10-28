@@ -35,7 +35,7 @@ class Point:
         return self.cluster.leader
 
     def is_leader(self):
-        return self.cluster != None and self.get_leader() == self
+        return self.cluster is not None and self.get_leader() == self
 
 
 class Cluster:
