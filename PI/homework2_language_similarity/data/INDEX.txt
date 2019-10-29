@@ -13,7 +13,7 @@ acu	Achuar-Shiwiar
 afk	Afrikaans
 agr	Aguaruna
 ajg	Adja
-aln	Albanian; Shqip (Albanian)
+aln	Albanian Shqip (Albanian)
 amc	Amahuaca
 ame	Amuesha-Yanesha
 amr	Amarakaeri
