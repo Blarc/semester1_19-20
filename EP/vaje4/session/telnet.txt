@@ -1,0 +1,11 @@
+# vsebina za primer zahtevka HTTP z uporabo programa telnet
+# ukaz: telnet localhost 80
+
+# poizvedba brez piĹĄkotka
+GET /netbeans/session/index.php HTTP/1.1
+Host: localhost
+
+# poizvedba s piĹĄkotkom nastavljenim na vrednost 1000
+GET /netbeans/session/index.php HTTP/1.1
+Host: localhost
+Cookie: PHPSESSID=

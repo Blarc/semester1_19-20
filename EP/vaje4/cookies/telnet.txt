@@ -1,0 +1,16 @@
+# vsebina za primer zahtevka HTTP z uporabo programa telnet
+# ukaz: telnet localhost 80
+
+# poizvedba brez piĹĄkotka
+GET /netbeans/cookies/index.php HTTP/1.1
+Host: localhost
+
+# poizvedba s piĹĄkotkom nastavljenim na vrednost 1000
+GET /netbeans/cookies/index.php HTTP/1.1
+Host: localhost
+Cookie: counter=1000
+
+# poizvedba z neveljavno vrednostjo piĹĄkotka
+GET /netbeans/cookies/index.php HTTP/1.1
+Host: localhost
+Cookie: counter=ni_stevilka
