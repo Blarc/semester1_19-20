@@ -1,3 +1,4 @@
+import operator
 import os
 from collections import defaultdict
 
@@ -5,14 +6,14 @@ import numpy as np
 from unidecode import unidecode
 
 
-def read_files(index_path, dir_path) -> dict:
+def read_files(index_path, dir_path):
     index_dict = defaultdict(str)
     with open(index_path, encoding="utf8") as index:
         for line in index:
             split_line = line.split()
             index_dict[split_line[0]] = split_line[1]
 
-    data_dict = defaultdict(Point)
+    data_dict = defaultdict(lambda: defaultdict(int))
 
     for file_name in os.listdir(dir_path):
         file_path = os.path.join(dir_path, file_name)
@@ -22,14 +23,20 @@ def read_files(index_path, dir_path) -> dict:
         file_name = file_name.replace(".txt", "")
         for i in range(0, len(data) - 2):
             key = index_dict[file_name]
-            if key not in data_dict:
-                data_dict[key] = Point(key)
-            data_dict[key].add_string(data[i:i + 3])
+            data_dict[key][data[i:i + 3]] += 1
 
-    return data_dict
+    # TODO mnde je narobe
+    col_dict = defaultdict(int)
+    for lang in data_dict:
+        for triplet in data_dict[lang]:
+            col_dict[triplet] += 1
+
+    col_sorted = enumerate(sorted(list(col_dict.items()), key=operator.itemgetter(1), reverse=True)[0:100])
+    col_dict = {x[1][0]: x[0] for x in col_sorted}
+    return data_dict, col_dict
 
 
-def prepare_data_matrix():
+def prepare_data_matrix(data, columns):
     """
     Return data in a matrix (2D numpy array), where each row contains triplets
     for a language. Columns should be the 100 most common triplets
@@ -37,7 +44,20 @@ def prepare_data_matrix():
     """
     # create matrix X and list of languages
     # ...
-    return X, languages
+
+    h = len(data)
+    matrix = np.zeros(shape=(h, 100))
+    languages = []
+    index = 0
+    for lang in data:
+        # matrix[index] = np.array([data[lang][triplet] for triplet in columns])
+        for triplet in columns:
+            if triplet in data[lang]:
+                matrix[index][columns[triplet]] = data[lang][triplet]
+        languages.append(lang)
+        index += 1
+
+    return matrix, languages
 
 
 def power_iteration(X):
@@ -107,7 +127,15 @@ def open_file(file_path):
 
 if __name__ == "__main__":
     # prepare the data matrix
-    X, languages = prepare_data_matrix()
+    # X, languages = prepare_data_matrix()
+    INDEX_PATH = "/home/jakob/Documents/semester1_19-20/PI/homework3_PCA/data/INDEX.txt"
+    DATA_PATH = "/home/jakob/Documents/semester1_19-20/PI/homework3_PCA/data/test"
+
+    data, cols = read_files(INDEX_PATH, DATA_PATH)
+
+    prepare_data_matrix(data, cols)
+
+    print("Hello World!");
 
     # PCA
     # ...

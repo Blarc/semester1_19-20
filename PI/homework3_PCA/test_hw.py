@@ -1,9 +1,9 @@
 import unittest
+
 import numpy as np
 
-from solution import power_iteration, power_iteration_two_components, \
+from .solution import power_iteration, power_iteration_two_components, \
     project_to_eigenvectors, explained_variance_ratio
-
 
 DATA = np.array([[22.0, 81.0, 32.0, 39.0, 21.0, 37.0, 46.0, 36.0, 99.0],
                  [91.0, 95.0, 65.0, 96.0, 89.0, 39.0, 11.0, 22.0, 29.0],
