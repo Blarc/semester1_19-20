@@ -1,5 +1,6 @@
 import operator
 import os
+import platform
 from collections import defaultdict
 
 import numpy as np
@@ -25,14 +26,18 @@ def read_files(index_path, dir_path):
             key = index_dict[file_name]
             data_dict[key][data[i:i + 3]] += 1
 
-    # TODO mnde je narobe
-    col_dict = defaultdict(int)
+    col_dict = defaultdict(float)
     for lang in data_dict:
         for triplet in data_dict[lang]:
             col_dict[triplet] += 1
 
-    col_sorted = enumerate(sorted(list(col_dict.items()), key=operator.itemgetter(1), reverse=True)[0:100])
-    col_dict = {x[1][0]: x[0] for x in col_sorted}
+    num_of_langs = len(data_dict)
+    for triplet in col_dict:
+        col_dict[triplet] = np.math.log(num_of_langs / col_dict[triplet], 10)
+
+    col_sorted = sorted(list(col_dict.items()), key=operator.itemgetter(1))
+    col_enumerated = enumerate(col_sorted[0:100])
+    col_dict = {x[1][0]: x[0] for x in col_enumerated}
     return data_dict, col_dict
 
 
@@ -69,7 +74,25 @@ def power_iteration(X):
     - the eigenvector (1D numpy array) and
     - the corresponding eigenvalue (a float)
     """
-    pass
+
+    X = X.transpose()
+
+    cov = np.cov(X)
+
+    vector = np.random.rand(X.shape[0])
+    while True:
+        old_vector = vector
+        vector = np.dot(cov, vector)
+        vector = vector_norm(vector)
+
+        if np.isclose(old_vector, vector).all():
+            break
+
+    return vector, cov.dot(vector.transpose()).dot(vector)
+
+
+def vector_norm(vector):
+    return vector / np.sqrt(np.sum(vector ** 2))
 
 
 def power_iteration_two_components(X):
@@ -81,7 +104,14 @@ def power_iteration_two_components(X):
     - the two eigenvectors (2D numpy array, each eigenvector in a row) and
     - the corresponding eigenvalues (a 1D numpy array)
     """
-    pass
+
+    first_vector, first_value = power_iteration(X)
+
+    X = X.transpose()
+
+    second_vector, second_value = first_vector * np.math.cos(90), 0
+
+    return np.array([first_vector, second_vector]), np.array([first_value, second_value])
 
 
 def project_to_eigenvectors(X, vecs):
@@ -128,12 +158,18 @@ def open_file(file_path):
 if __name__ == "__main__":
     # prepare the data matrix
     # X, languages = prepare_data_matrix()
-    INDEX_PATH = "/home/jakob/Documents/semester1_19-20/PI/homework3_PCA/data/INDEX.txt"
-    DATA_PATH = "/home/jakob/Documents/semester1_19-20/PI/homework3_PCA/data/test"
+    INDEX_PATH = "D:\Jakob\\3letnik\semester1\git\PI\homework3_PCA\data\INDEX.txt"
+    DATA_PATH = "D:\Jakob\\3letnik\semester1\git\PI\homework3_PCA\data\\test"
+
+    if platform.system() == "Linux":
+        INDEX_PATH = "/home/jakob/Documents/semester1_19-20/PI/homework3_PCA/data/INDEX.txt"
+        DATA_PATH = "/home/jakob/Documents/semester1_19-20/PI/homework3_PCA/data/test"
 
     data, cols = read_files(INDEX_PATH, DATA_PATH)
 
-    prepare_data_matrix(data, cols)
+    matrix, languages = prepare_data_matrix(data, cols)
+
+    vec, val = power_iteration(matrix)
 
     print("Hello World!");
 
