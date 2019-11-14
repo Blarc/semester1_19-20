@@ -1,0 +1,3 @@
+RewriteEngine On
+RewriteCond %{HTTPS} off
+RewriteRule "(^adm/.*)" "https://%{HTTP_HOST}%{REQUEST_URI}"

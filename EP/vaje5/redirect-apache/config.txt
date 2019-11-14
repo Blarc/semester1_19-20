@@ -1,0 +1,8 @@
+# Konfiguracijski datoteki za streĹžbo datotek po protokolu HTTP in HTTPS
+# morata vsebovati spodnji zapis;
+# tako datoteka 000-default.conf kot tudi default-ssl.conf
+
+Alias /netbeans /home/ep/NetBeansProjects
+<Directory /home/ep/NetBeansProjects>
+    Require all granted
+</Directory>
