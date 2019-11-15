@@ -29,6 +29,8 @@ def read_files(index_path, dir_path):
     col_dict = defaultdict(float)
     for lang in data_dict:
         for triplet in data_dict[lang]:
+            if " " in triplet:
+                continue
             col_dict[triplet] += 1
 
     num_of_langs = len(data_dict)
@@ -85,7 +87,7 @@ def power_iteration(X):
         vector = np.dot(cov, vector)
         vector = vector_norm(vector)
 
-        if np.isclose(old_vector, vector).all():
+        if np.allclose(old_vector, vector):
             break
 
     return vector, cov.dot(vector.transpose()).dot(vector)
@@ -107,9 +109,11 @@ def power_iteration_two_components(X):
 
     first_vector, first_value = power_iteration(X)
 
-    X = X.transpose()
+    X = X - np.mean(X, axis=0)
+    P = X.dot(first_vector).reshape(-1, 1)
+    Y = X - P.dot(first_vector.reshape(1, -1))
 
-    second_vector, second_value = first_vector * np.math.cos(90), 0
+    second_vector, second_value = power_iteration(Y)
 
     return np.array([first_vector, second_vector]), np.array([first_value, second_value])
 
@@ -120,7 +124,18 @@ def project_to_eigenvectors(X, vecs):
     The output array should have as many rows as X and as many columns as there
     are vectors.
     """
-    pass
+
+    X = X - np.mean(X, axis=0)
+
+    # return X.dot(vecs.T)
+
+    first_vector = vecs[0]
+    second_vector = vecs[1]
+
+    first_proj = X.dot(first_vector).reshape(-1, 1)
+    second_proj = X.dot(second_vector).reshape(-1, 1)
+
+    return np.hstack((first_proj, second_proj))
 
 
 def total_variance(X):
@@ -132,10 +147,7 @@ def total_variance(X):
 
 
 def explained_variance_ratio(X, eigenvectors, eigenvalues):
-    """
-    Compute explained variance ratio.
-    """
-    pass
+    return sum(eigenvalues) / total_variance(X)
 
 
 def open_file(file_path):
@@ -171,10 +183,21 @@ if __name__ == "__main__":
 
     vec, val = power_iteration(matrix)
 
-    print("Hello World!");
-
     # PCA
-    # ...
+
+    print(matrix)
+    vecs, vals = power_iteration_two_components(matrix)
+    projection = project_to_eigenvectors(matrix, vecs)
+    explained_var = explained_variance_ratio(matrix, vecs, vals)
 
     # plotting
     # ...
+    from matplotlib import pyplot as plt
+
+    for index, lang in enumerate(languages):
+        x = projection[index][0]
+        y = projection[index][1]
+        plt.scatter(x, y)
+        plt.text(x, y, lang)
+
+    plt.show()
