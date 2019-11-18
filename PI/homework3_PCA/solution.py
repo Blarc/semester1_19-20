@@ -185,7 +185,6 @@ if __name__ == "__main__":
 
     # PCA
 
-    print(matrix)
     vecs, vals = power_iteration_two_components(matrix)
     projection = project_to_eigenvectors(matrix, vecs)
     explained_var = explained_variance_ratio(matrix, vecs, vals)
@@ -200,4 +199,5 @@ if __name__ == "__main__":
         plt.scatter(x, y)
         plt.text(x, y, lang)
 
+    plt.title("Explained variance: " + str(round(explained_var, 4)))
     plt.show()
