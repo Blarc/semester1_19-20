@@ -200,4 +200,5 @@ if __name__ == "__main__":
         plt.text(x, y, lang)
 
     plt.title("Explained variance: " + str(round(explained_var, 4)))
+    plt.savefig('result.png', bbox_inches='tight')
     plt.show()
