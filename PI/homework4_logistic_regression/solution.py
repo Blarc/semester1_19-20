@@ -1,10 +1,12 @@
+import platform
+
 import numpy as np
 from scipy.optimize import fmin_l_bfgs_b
 
 
 def load(name):
-    """ 
-    Odpri datoteko. Vrni matriko primerov (stolpci so znacilke) 
+    """
+    Odpri datoteko. Vrni matriko primerov (stolpci so znacilke)
     in vektor razredov.
     """
     data = np.loadtxt(name)
@@ -13,12 +15,20 @@ def load(name):
 
 
 def h(x, theta):
-    """ 
+    """
     Napovej verjetnost za razred 1 glede na podan primer (vektor vrednosti
     znacilk) in vektor napovednih koeficientov theta.
     """
     # ... dopolnite (naloga 1)
-    return 0.
+
+    power = x.dot(-theta.T)
+
+    return 1 / (1 + np.exp(power))
+
+
+def sixEight(x, theta, yi):
+    # return yi * np.log(max(h(x, theta), 0.1 ** 15)) + (1 - yi) * np.log(max((1 - h(x, theta)), 0.1 ** 15))
+    return yi * np.log(h(x, theta)) + (1 - yi) * np.log((1 - h(x, theta)))
 
 
 def cost(theta, X, y, lambda_):
@@ -26,7 +36,10 @@ def cost(theta, X, y, lambda_):
     Vrednost cenilne funkcije.
     """
     # ... dopolnite (naloga 1, naloga 2)
-    return 0.
+    reg = lambda_ * sum([e ** 2 for e in theta])
+
+    # return -1 / len(y) * sum([sixEight(x, theta, yi) for x, yi in zip(X, y)]) + reg
+    return -1 / len(y) * sum([sixEight(x, theta, yi) for x, yi in zip(X, y)])
 
 
 def grad(theta, X, y, lambda_):
@@ -34,7 +47,12 @@ def grad(theta, X, y, lambda_):
     Odvod cenilne funkcije. Vrne 1D numpy array v velikosti vektorja theta.
     """
     # ... dopolnite (naloga 1, naloga 2)
-    return None
+
+    l = []
+    for i, e in enumerate(theta):
+        l.append(1 / len(y) * sum([(h(x, theta) - yi) * x[i] for x, yi in zip(X, y)]) + 2 * lambda_ * e)
+
+    return np.array(l)
 
 
 def num_grad(theta, X, y, lambda_):
@@ -105,8 +123,8 @@ def test_cv(learner, X, y, k=5):
 
 
 def CA(real, predictions):
-    # ... dopolnite (naloga 3)
-    pass
+    """return RMSE"""
+    return np.sqrt(sum([(e1 - e2) ** 2 for e1, e2 in zip(real, predictions)]) / len(real))
 
 
 def AUC(real, predictions):
@@ -117,10 +135,14 @@ def AUC(real, predictions):
 if __name__ == "__main__":
     # Primer uporabe
 
-    X, y = load('reg.data')
+    DATA_PATH = "D:\Jakob\\3letnik\semester1\git\PI\homework4_logistic_regression\data\\reg.data"
+
+    if platform.system() == "Linux":
+        INDEX_PATH = "/home/jakob/Documents/semester1_19-20/PI/homework3_PCA/data/INDEX.txt"
+    X, y = load(DATA_PATH)
 
     learner = LogRegLearner(lambda_=0.0)
-    classifier = learner(X, y) # dobimo model
+    classifier = learner(X, y)  # dobimo model
 
     napoved = classifier(X[0])  # napoved za prvi primer
     print(napoved)
