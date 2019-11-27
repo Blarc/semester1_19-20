@@ -39,7 +39,7 @@ def cost(theta, X, y, lambda_):
     reg = lambda_ * sum([e ** 2 for e in theta])
 
     # return -1 / len(y) * sum([sixEight(x, theta, yi) for x, yi in zip(X, y)]) + reg
-    return -1 / len(y) * sum([sixEight(x, theta, yi) for x, yi in zip(X, y)])
+    return -1 / len(y) * sum([sixEight(x, theta, yi) for x, yi in zip(X, y)]) + reg
 
 
 def grad(theta, X, y, lambda_):
@@ -55,14 +55,15 @@ def grad(theta, X, y, lambda_):
     return np.array(l)
 
 
-def num_grad(theta, X, y, lambda_):
+def num_grad(theta, X, y, lambda_, e=1e-3):
     """
     Odvod cenilne funkcije izracunan numericno.
     Vrne numpyev vektor v velikosti vektorja theta.
     Za racunanje gradienta numericno uporabite funkcijo cost.
     """
     # ... dopolnite (naloga 1, naloga 2)
-    return None
+    return np.array([(cost(theta + eps, X, y, lambda_) - cost(theta - eps, X, y, lambda_)) / (2 * e)
+                     for eps in np.identity(len(theta)) * e])
 
 
 class LogRegClassifier(object):
@@ -119,13 +120,22 @@ def test_cv(learner, X, y, k=5):
         res = test_cv(LogRegLearner(lambda_=0.0), X, y)
     ... dopolnite (naloga 3)
     """
-    pass
+
+    groups = [[]] * k
+
+    for i, x in enumerate(X):
+        groups[i % k].append(x)
+
+    c = learner(X, y)
+    results = [c(x) for x in X]
+    return results
 
 
 def CA(real, predictions):
-    """return RMSE"""
-    return np.sqrt(sum([(e1 - e2) ** 2 for e1, e2 in zip(real, predictions)]) / len(real))
+    solution = [0 if x > y else 1 for x, y in predictions]
+    correct = np.count_nonzero(np.equal(solution, real))
 
+    return correct / len(real)
 
 def AUC(real, predictions):
     # ... dopolnite (dodatna naloga)
@@ -138,7 +148,7 @@ if __name__ == "__main__":
     DATA_PATH = "D:\Jakob\\3letnik\semester1\git\PI\homework4_logistic_regression\data\\reg.data"
 
     if platform.system() == "Linux":
-        INDEX_PATH = "/home/jakob/Documents/semester1_19-20/PI/homework3_PCA/data/INDEX.txt"
+        DATA_PATH = "/home/jakob/Documents/semester1_19-20/PI/homework4_logistic_regression/data/reg.data"
     X, y = load(DATA_PATH)
 
     learner = LogRegLearner(lambda_=0.0)
