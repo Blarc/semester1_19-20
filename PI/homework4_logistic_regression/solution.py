@@ -1,4 +1,5 @@
 import platform
+import random
 
 import numpy as np
 from scipy.optimize import fmin_l_bfgs_b
@@ -121,13 +122,45 @@ def test_cv(learner, X, y, k=5):
     ... dopolnite (naloga 3)
     """
 
-    groups = [[]] * k
+    # shuffle the cases
+    shuffled = list(enumerate(zip(X, y)))
+    random.shuffle(shuffled)
 
-    for i, x in enumerate(X):
-        groups[i % k].append(x)
+    folds = [[] for _ in range(k)]
 
-    c = learner(X, y)
-    results = [c(x) for x in X]
+    # make list of folds
+    for i, x in enumerate(shuffled):
+        folds[i % k].append(x)
+
+    results = [0] * len(X)
+
+    # pick different test/training folds k times
+    for i, test in enumerate(folds):
+        training = folds.copy()
+        # remove i fold
+        training.pop(i)
+
+        # get attributes and class for training folds
+        flat = [item for sublist in training for item in sublist]
+        training_data = list(zip(*flat))
+        # training_indices = training_data[0]
+        training_cases = list(zip(*training_data[1]))
+        training_X = np.array(training_cases[0])
+        training_y = np.array(training_cases[1])
+
+        # get attributes and class for test folds
+        flat = [item for item in test]
+        test_data = list(zip(*flat))
+        test_indices = test_data[0]
+        test_cases = list(zip(*test_data[1]))
+        test_X = np.array(test_cases[0])
+        # test_y = np.array(test_cases[1])
+
+        training_learner = learner(training_X, training_y)
+        testing_results = [(index, training_learner(x)) for index, x in zip(test_indices, test_X)]
+        for index, val in testing_results:
+            results[index] = val
+
     return results
 
 
