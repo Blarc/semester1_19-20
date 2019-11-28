@@ -1,0 +1,76 @@
+Testiranje programske opreme
+Jakob Maležiè
+E-pošta: jm6421@student.uni-lj.si
+
+Povzetek. V tej seminarski nalogi so predstavljeni razlièni procesi testiranja programske opreme. Glavni poudarek je na razlogih, zakaj je testiranje potrebno in razliènih tipih testiranja. Podanih pa je tudi nekaj slabih praks oz. èesa si pri testiranju ne želimo.
+
+Kljuène besede: testiranje, testi enote, integracijski testi, verifikacijski & validacijski testi, code coverage
+
+
+
+Software testing
+This seminar paper talks about different ways of software testing. It's main focus are reasons for software testing and different types of software testing. It also presents wrong ways of software testing or so called »anti-patterns«.
+
+Keywords: software testing, unit tests, integration tests, verification & validation tests, code coverage
+1 UVOD
+Testiranje programske opreme je namenjeno ocenjevanju kvalitete programske opreme. S testiranjem lahko objektivno ugotovimo kako dobra je naša programska oprema ter kje so njene slabosti. Za veèino aplikacij, nam je samoumevno da delujejo pravilno, na primer aplikacije, ki skrbijo za delovanje jedrskih elektrarn, finanènih inštitucij, borz, kirurških robotov. Èe pa bi v takih aplikacijah prišlo do kakršnekoli napake, bi bile lahko posledice katastrofalne. Zato je zelo pomembno pravilno testiranje, ki nas na take napake vnaprej opozori.
+
+2 POSLEDICE SLABEGA TESTIRANJA
+Kot že reèeno, je testiranje izjemno pomembno ker lahko programske napake vodijo v velike finanène izgube. Nekaj primerov:
+- Aprila 2015 je Bloombergov terminal imel napako, zaradi katere je nastalo 3 bilijone izgube
+- Avtomobilsko podjetje Nissan je moralo preklicati veè kot milijon avtov zaradi programske napake v senzorjih za AIRBAGE
+- Podjetje Starbucks je bilo primorano zapreti 60% vseh svojih poslovalnic v ZDA ter Kanadi, ker so imeli programsko napako v POS terminalih.
+- Zaradi programske napake so nekateri izdelki na Amazonu stali zgolj 1 penny
+- Kitajsko letalo je 26. aprila 1994 strmoglavilo zaradi programske napake
+3 TIPI TESTIRANJA
+3.1 Testi enot (angl. unit tests)
+Testi enot so po navadi avtomatièni testi, ki jih poganjajo razvijalci programske opreme, da zagotovijo da posamezna »enota« programa pravilno deluje. V funkcijskem programiranju je to po navadi zgolj ena funkcija. V objektno orientiranem programiranju pa je enota velikokrat kar cel razred, lahko pa je tudi posamezna metoda.
+3.1.1 Prednosti 
+Cilj testiranja enot je izolirati vsak del programa ter pokazati da so vsi individualni deli pravilni. Testi enote doloèajo striktne pogoje, katerim mora del kode zadošèati. Zato imajo nekaj prednosti:
+- Testi enote najdejo napake že zgodaj v razvojnem ciklu. Tako programske napake kot manjkajoèe dele, ki so specificirani v enoti.
+- Proces pisanja podrobnih testov prisili programerja da dobro premisli o vhodih, izhodih in možnih napakah ter s tem bolj toèno definira obnašanje enote.
+- Cena iskanja napake pred pisanjem kode je veliko manjša kot iskanje enake napake kasneje.
+- Kodo je nemogoèe ali pa zelo težko testirati èe je slabo spisana, zato lahko testiranje prisili programerje da pišejo boljšo kodo.
+
+3.1.2 Test driven development (TDD)
+V razvoju, ki temelji na testih, angl. test driven development, ki se pogosto uporablja v »extreme programming« ter »scrum«, so testi enote napisani pred kodo. Tako koda ni sprejemljiva, dokler vsi testi ne delujejo. 
+
+Ko se razvija veèji del kode, se isti testi poganjajo veèkrat. Vsakiè ko se koda spremeni ali pa pri vsaki gradnji angl. buildu kode. Èe testi ne delujejo, pomeni da imamo napako ali v spremenjeni kodi ali pa v testu. Test nam tako olajša iskanje te napake. Ker taki testi zgodaj v razvoju opozorijo na napake, le te manjkrat pridejo do konènih uporabnikov.
+3.2 Integracijski testi (angl. integration tests)
+Integracijski testi testirajo integracijo posameznih modulov med sabo. Z njimi preverimo skladnost sistema ali komponente s specificiranimi funkcijskimi zahtevami. Izvajajo se po testiranju enot ter pred validacijskimi testi. Poznamo razliène pristope integracijski testov.
+
+3.2.1 Big Bang
+Veèino razvitih modulov združimo skupaj, da tvorijo konèan programski sistem ali pa vsaj veèinski del sistem in jih nato uporabimo za integracijske teste. Ta metoda je zelo èasovno uèinkovita, vendar se lahko hitro zgodi, da testni primeri in njihovi rezultati niso primerno doloèeni. Tako se lahko integracija hitro zakomplicira.
+
+3.2.2 Bottom Up
+»Bottom Up« ali od spodaj navzgor, je metoda integracijskega testiranja, kjer najprej testiramo najenostavnejše komponente, ki jih potem uporabimo za testiranje bolj kompleksnih. Proces ponavljamo, dokler ne testiramo najkompleksnejših komponent. Ta metoda je dobra samo takrat, ko so vse ali pa skoraj vse komponente nekega nivoja pripravljene.
+
+3.2.3 Bottom Down
+»Bottom Down« ali od zgoraj navzdol, je metoda ki je ravno nasprotna od »Bottom Up«. Najprej so testirane najvišje, oz. najbolj kompleksne komponente individualno, nato pa testiramo manj kompleksne dokler ne pridemo do najbolj osnovnih komponent. Prednost je predvsem ta, da najprej testiramo kritiène ter najpomembnejše komponente.
+
+3.3 Verifikacijski ter Validacijski testi
+V&V testi preverjajo èe programska oprema zadostuje specifikacijam in izpolnjuje svoj namen. Verifikacija pomeni da preverjamo èe je naš produkt pravilno izdelan, medtem ko validacija preverja èe smo naredili ustrezen produkt.
+
+4 CODE COVERAGE
+»Code coverage« oz. »test coverage« je pojem, ki opisuje kako dobro se program izvaja glede na teste, ki so zanj specificirani. Veèji kot je code coverage, veèji delež programa se je preveril s testi, iz èesar lahko prièakujemo manj napak, vendar ne nujno.
+5 SLABE PRAKSE
+5.1 Testi enot brez integracijskih testov
+Nekatere napake lahko zaznajo zgolj integracijski testi. Najbolj oèitne so tu napake v povezavi z bazo. Transakcije in druge operacije v zvezi z bazo lahko preverimo samo z integracijskimi testi. (mogoèe tabela) Razen èe delamo nekaj zelo izoliranega nujno potrebujemo tudi integracijske teste, da zaznamo napake, ki jih testi enot ne zaznajo.
+
+5.2 Integracijski testi brez testov enot
+V teoriji bi lahko imeli zgolj integracijske teste vendar v praksi pa so testi enot:
+- Lažji za vzdrževanje
+- Lažje zaznajo robne primere
+- So veliko hitrejši
+- Slabe teste enot je veliko lažje popraviti kot integracijske
+
+5.3 Testiranje napaènih funkcionalnosti
+Naèeloma si želimo da bi naša programska oprema imela 100% code coverage. Vendar v praksi se izkaže da je to zelo težko doseèi, hkrati pa to ne pomeni da je naša programska oprema brez napak. V veèjih projektih se veèkrat izkaže da je lahko že 20% code coverage-a dovolj, vendar teh 20% pokrije 100% kritiènih delov. Kritièni deli pa so tisti, ki se velikokrat pokvarijo, posodabljajo ali pa imajo velik vpliv na konènega uporabnika.
+
+6 POVZETEK
+Èe povzamemo, testi so izredno pomemben del razvoja programske opreme. Brez njih lahko pride do katastrofalnih posledic. Pomembno je da svojo programsko pravilno in dobro testiramo.
+Poznamo razliène tipe testiranja programske opreme: testi enot, integracijski testi, verifikacijski ter validacijski testi in še mnogo drugih. Vsak tip testov ima svoje prednosti in slabosti, zato je pomembno da skrbimo za dobro ravnotežje med njimi. Prav tako je pomembno da testiramo pravilne dele kode ter se ne oziramo preveè na code coverage, saj nam le ta ne nujno zagotavlja pravilno delovanje.
+2		AUTHORS NAME
+
+2		Jakob Maležiè
+
