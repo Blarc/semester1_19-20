@@ -34,12 +34,12 @@ def draw_decision(X, y, classifier, at1, at2, file_name, grid=50):
             prob[yi, xi] = classifier(X[ind[0]])[1]
 
     pyplot.imshow(prob, extent=(minx, maxx, maxy, miny), cmap="seismic")
-    pyplot.savefig(file_name + ".png")
 
     pyplot.xlim(minx, maxx)
     pyplot.ylim(miny, maxy)
     pyplot.xlabel(at1)
     pyplot.ylabel(at2)
+    pyplot.savefig(file_name + ".png")
 
     pyplot.show()
 
@@ -47,23 +47,20 @@ def draw_decision(X, y, classifier, at1, at2, file_name, grid=50):
 if __name__ == "__main__":
     X, y = load('./data/reg.data')
 
-    lambda_ = 0
-    learner = LogRegLearner(lambda_=0.)
-    classifier = learner(X, y)
-    draw_decision(X, y, classifier, 0, 1, file_name="lambda0")
+    # lambda_ = 0
+    # learner = LogRegLearner(lambda_=0.)
+    # classifier = learner(X, y)
+    # draw_decision(X, y, classifier, 0, 1, file_name="lambda0")
 
-    lambda_ = 0.1
-    learner = LogRegLearner(lambda_=0.1)
+    learner = LogRegLearner(lambda_=10)
     classifier = learner(X, y)
     draw_decision(X, y, classifier, 0, 1, file_name="lambda1")
 
-    lambda_ = 0.001
-    learner = LogRegLearner(lambda_=0.001)
+    learner = LogRegLearner(lambda_=0.01)
     classifier = learner(X, y)
     draw_decision(X, y, classifier, 0, 1, file_name="lambda3")
 
-    lambda_ = 0.00001
-    learner = LogRegLearner(lambda_=0.00001)
+    learner = LogRegLearner(lambda_=0.0001)
     classifier = learner(X, y)
     draw_decision(X, y, classifier, 0, 1, file_name="lambda4")
 
