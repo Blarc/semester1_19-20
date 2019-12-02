@@ -7,8 +7,11 @@ from sklearn.cluster import KMeans
 
 NALOGA_8 = "clu/12.csv"
 NALOGA_9 = "clu/169.csv"
+NALOGA_10 = "clu/150.csv"
 
-DATA = pd.read_csv("./data/" + NALOGA_9)
+naloga = NALOGA_10
+
+DATA = pd.read_csv("./data/" + naloga)
 DATA.info()
 
 NUMBER_OF_ATTRIBUTES = len(DATA.columns)
@@ -29,6 +32,9 @@ NUMBER_OF_ATTRIBUTES = len(DATA.columns)
 
 # C1 = [4, 57]
 # C2 = [59, 79]
+
+# C1 = [3, 69]
+# C2 = [50, 23]
 #
 # K = 100
 #
@@ -43,20 +49,20 @@ NUMBER_OF_ATTRIBUTES = len(DATA.columns)
 # #
 # print("ones:  %d" % ones)
 # print("zeros: %d" % zeros)
-#
-#
-# print("End of program")
 
 # naloga 10
 
-# C1 = [87, -16]
-# C2 = [-48, -80]
-#
-# K = 100
-#
-# kmeans = KMeans(n_clusters=2, random_state=0, max_iter=K, init=np.array([C1, C2]), n_init=1)
-# kmeans.fit(DATA)
-#
-# print(kmeans.cluster_centers_)
-#
-# print("End of program")
+C1 = [87, -16]
+C2 = [-48, -80]
+
+K = 100
+
+kmeans = KMeans(n_clusters=2, random_state=0, max_iter=K, init=np.array([C1, C2]), n_init=1)
+kmeans.fit(DATA)
+
+print(kmeans.cluster_centers_)
+
+
+
+
+print("End of program")

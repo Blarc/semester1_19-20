@@ -52,29 +52,29 @@ if __name__ == "__main__":
     # classifier = learner(X, y)
     # draw_decision(X, y, classifier, 0, 1, file_name="lambda0")
 
-    learner = LogRegLearner(lambda_=10)
-    classifier = learner(X, y)
-    draw_decision(X, y, classifier, 0, 1, file_name="lambda1")
-
-    learner = LogRegLearner(lambda_=0.01)
-    classifier = learner(X, y)
-    draw_decision(X, y, classifier, 0, 1, file_name="lambda3")
-
-    learner = LogRegLearner(lambda_=0.0001)
-    classifier = learner(X, y)
-    draw_decision(X, y, classifier, 0, 1, file_name="lambda4")
-
-    # print('{:<15}{:<15}{:<15}'.format('lambda', 'type', 'tocnost'))
-    # lamb = 1000
-    # for i in range(10):
-    #     learner = LogRegLearner(lambda_=lamb)
-    #     res_cv = test_cv(learner, X, y)
-    #     res_normal = test_learning(learner, X, y)
+    # learner = LogRegLearner(lambda_=10)
+    # classifier = learner(X, y)
+    # draw_decision(X, y, classifier, 0, 1, file_name="lambda1")
     #
-    #     print('{:<15f}{:<15}{:<15f}'.format(lamb, "cv", CA(y, res_cv)))
-    #     print('{:<15f}{:<15}{:<15f}'.format(lamb, "normal", CA(y, res_normal)))
+    # learner = LogRegLearner(lambda_=0.01)
+    # classifier = learner(X, y)
+    # draw_decision(X, y, classifier, 0, 1, file_name="lambda3")
     #
-    #     lamb /= 10
+    # learner = LogRegLearner(lambda_=0.0001)
+    # classifier = learner(X, y)
+    # draw_decision(X, y, classifier, 0, 1, file_name="lambda4")
+
+    print('{:<15}{:<15}{:<15}'.format('lambda', 'type', 'tocnost'))
+    lamb = 100
+    for i in range(10):
+        learner = LogRegLearner(lambda_=lamb)
+        res_cv = test_cv(learner, X, y)
+        res_normal = test_learning(learner, X, y)
+
+        print('{:<15f}{:<15}{:<15f}'.format(lamb, "cv", CA(y, res_cv)))
+        print('{:<15f}{:<15}{:<15f}'.format(lamb, "normal", CA(y, res_normal)))
+
+        lamb /= 5
 
 
 
