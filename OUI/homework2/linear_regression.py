@@ -22,7 +22,7 @@ NALOGA_5 = "reg/154.csv"
 NALOGA_6 = "reg/166.csv"
 NALOGA_7 = "reg/116.csv"
 
-naloga = NALOGA_7
+naloga = NALOGA_6
 
 
 DATA = pd.read_csv("./data/" + naloga)
@@ -106,7 +106,7 @@ NUMBER_OF_ATTRIBUTES = len(DATA.columns) - 1
 # naloga 6
 # Split to learning and test set
 K = 10
-SIZE_LEARN = 52
+SIZE_LEARN = 23
 L = DATA[:SIZE_LEARN]
 T = DATA[SIZE_LEARN:]
 
@@ -119,8 +119,7 @@ test_y = T.iloc[:, NUMBER_OF_ATTRIBUTES:]
 res = []
 for i in range(1, 20):
     knn = KNeighborsRegressor(n_neighbors=i)
-    knn = knn.fit(learning_x, learning_y)
-    scores = cross_val_score(knn, test_x, test_y, scoring="neg_mean_squared_error", cv=K)
+    scores = cross_val_score(knn, learning_x, learning_y, scoring="neg_mean_squared_error", cv=K)
     # rmse_scores = np.sqrt(-scores)
     print(i)
     scores = [abs(x) for x in scores]
@@ -129,6 +128,16 @@ for i in range(1, 20):
 
 
 print(min(res))
+
+_, k = min(res)
+
+knn = KNeighborsRegressor(k)
+knn.fit(learning_x, learning_y)
+Y_pred = knn.predict(test_x)
+# df = pd.DataFrame({'Actual': test_y, 'Predicted': Y_pred})
+# print(df)
+print('Mean Squared Error:', mean_squared_error(test_y, Y_pred))
+
 
 
 print("End of program")
