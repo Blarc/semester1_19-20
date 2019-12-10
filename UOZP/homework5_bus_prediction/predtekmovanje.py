@@ -3,8 +3,10 @@ import gzip
 import platform
 
 import numpy as np
+import scipy.sparse
 
 from homework5_bus_prediction import lpputils
+from homework5_bus_prediction.linear import LinearLearner
 
 
 def createColumns():
@@ -51,12 +53,14 @@ def createData(path, numOfRows, numOfColumns, precipitationData, train):
     f = gzip.open(path, "rt")
     reader = csv.reader(f, delimiter="\t")
     next(reader)
+    departures = []
     X = np.zeros(shape=(numOfRows, numOfColumns))
-    y = np.empty(shape=(numOfRows, 1))
+    y = np.empty(numOfRows)
     for i, line in enumerate(reader):
         registration, driverId, route, routeDir, routeDisc, firstStation, departureTime, lastStation, arrivalTime = line
 
         parsedDepartureDateTime = lpputils.parsedate(departureTime)
+        departures.append(parsedDepartureDateTime)
         X[i][columns[f"{parsedDepartureDateTime.day % 7}"]] = 1
 
         time = parsedDepartureDateTime.time()
@@ -77,7 +81,7 @@ def createData(path, numOfRows, numOfColumns, precipitationData, train):
         if train:
             y[i] = lpputils.tsdiff(arrivalTime, departureTime)
 
-    return X, y
+    return X, y, departures
 
 
 def createPrecipitation():
@@ -100,7 +104,14 @@ def getNumberOfRows(path):
     return rowsCounter
 
 
+def meanAbsoluteError(pred, true):
+    absolutes = [abs(y - x) for x, y in zip(pred, true)]
+    return sum(absolutes) / len(absolutes)
+
+
 if __name__ == "__main__":
+
+    OUT = open("out.txt", "w")
 
     TRAIN_PATH = "D:\Jakob\\3letnik\semester1\git\\UOZP\homework5_bus_prediction\data\\train_pred.csv.gz"
     TEST_PATH = "D:\Jakob\\3letnik\semester1\git\\UOZP\homework5_bus_prediction\data\\test_pred.csv.gz"
@@ -111,13 +122,28 @@ if __name__ == "__main__":
         TEST_PATH = "/home/jakob/Documents/semester1_19-20/PI/homework5_bus_prediction/data/test_pred.csv.gz"
         PRECIPITATION_PATH = "/home/jakob/Documents/semester1_19-20/PI/homework5_bus_prediction/data/precipitation.csv"
 
-    TIME_INTERVAL = 1800
+    TIME_INTERVAL = 225
+
+    # 225
 
     precipitation = createPrecipitation()
 
     columns, NUM_OF_ROWS, NUM_OF_COLUMNS = createColumns()
 
-    trainX, trainY = createData(TRAIN_PATH, NUM_OF_ROWS, NUM_OF_COLUMNS, precipitation, train=True)
-    testX, _ = createData(TEST_PATH, getNumberOfRows(TEST_PATH), NUM_OF_COLUMNS, precipitation, train=False)
-    
-    print("HELLO")
+    trainX, trainY, trainDepartureTimes = createData(TRAIN_PATH, NUM_OF_ROWS, NUM_OF_COLUMNS, precipitation, train=True)
+    testX, _, testDepartureTimes = createData(TEST_PATH, getNumberOfRows(TEST_PATH), NUM_OF_COLUMNS, precipitation,
+                                              train=False)
+
+    Xsp = scipy.sparse.csr_matrix(trainX)
+    learner = LinearLearner(lambda_=0.001)
+    model = learner(Xsp, trainY)
+
+    # predictions = [model(x) for x in trainX]
+    # print(meanAbsoluteError(predictions, trainY))
+
+    for index, x in enumerate(testX):
+        arrivalTimePred = lpputils.tsadd(testDepartureTimes[index], model(x))
+        print(arrivalTimePred)
+        print(arrivalTimePred, file=OUT)
+
+    print("done!")
