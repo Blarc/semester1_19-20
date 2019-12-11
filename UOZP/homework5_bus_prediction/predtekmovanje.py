@@ -61,7 +61,7 @@ def createData(path, numOfRows, numOfColumns, precipitationData, train):
 
         parsedDepartureDateTime = lpputils.parsedate(departureTime)
         departures.append(parsedDepartureDateTime)
-        X[i][columns[f"{parsedDepartureDateTime.day % 7}"]] = 1
+        X[i][columns[f"{parsedDepartureDateTime.weekday()}"]] = 1
 
         time = parsedDepartureDateTime.time()
         seconds = (time.hour * 60 + time.minute) * 60 + time.second
@@ -138,12 +138,12 @@ if __name__ == "__main__":
     learner = LinearLearner(lambda_=0.001)
     model = learner(Xsp, trainY)
 
-    # predictions = [model(x) for x in trainX]
-    # print(meanAbsoluteError(predictions, trainY))
+    predictions = [model(x) for x in trainX]
+    print(meanAbsoluteError(predictions, trainY))
 
-    for index, x in enumerate(testX):
-        arrivalTimePred = lpputils.tsadd(testDepartureTimes[index], model(x))
-        print(arrivalTimePred)
-        print(arrivalTimePred, file=OUT)
+    # for index, x in enumerate(testX):
+    #     arrivalTimePred = lpputils.tsadd(testDepartureTimes[index], model(x))
+    #     print(arrivalTimePred)
+    #     print(arrivalTimePred, file=OUT)
 
     print("done!")
