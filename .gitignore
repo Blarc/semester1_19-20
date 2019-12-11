@@ -294,3 +294,7 @@ local.properties
 #NDK
 obj/
 out/
+
+/OUI/homework3/data
+/OUI/homework3/replays
+/OUI/homework3/lia
