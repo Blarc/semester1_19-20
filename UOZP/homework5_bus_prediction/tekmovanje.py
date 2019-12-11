@@ -5,11 +5,19 @@ import platform
 from typing import Dict
 
 import numpy as np
+import scipy.sparse
 
 from homework5_bus_prediction import lpputils
+from homework5_bus_prediction.linear import LinearLearner
+
+
+def meanAbsoluteError(pred, true):
+    absolutes = [abs(y - x) for x, y in zip(pred, true)]
+    return sum(absolutes) / len(absolutes)
 
 
 class Route:
+
     def __init__(self, routeNum: int):
         self.routeNum = routeNum
 
@@ -54,20 +62,22 @@ class Route:
         self.testDepartureTimes.append(departureTime)
 
     # initializes trainMatrix with zeros
+
     def initTrainMatrix(self):
         self.trainX = np.zeros(shape=(self.trainRowsCounter, self.columnsCounter))
         self.trainY = np.empty(self.trainRowsCounter)
 
     # initializes testMatrix with zeros
+
     def initTestMatrix(self):
         self.testX = np.zeros(shape=(self.testRowsCounter, self.columnsCounter))
         self.testY = np.empty(self.testRowsCounter)
 
     def fillTrainDay(self, departureTime: datetime):
-        self.trainX[self.trainRowsIndex][self.columns[str(departureTime.day % 7)]] = 1
+        self.trainX[self.trainRowsIndex][self.columns[str(departureTime.weekday())]] = 1
 
     def fillTestDay(self, departureTime: datetime):
-        self.testX[self.testRowsIndex][self.columns[str(departureTime.day % 7)]] = 1
+        self.testX[self.testRowsIndex][self.columns[str(departureTime.weekday())]] = 1
 
     def fillTrainTime(self, departureTime: datetime):
         time = departureTime.time()
@@ -95,6 +105,27 @@ class Route:
 
     def fillTrainY(self, clazz: float):
         self.trainY[self.trainRowsIndex] = clazz
+
+    def getPredictionsTrain(self):
+        sparseX = scipy.sparse.csr_matrix(self.trainX)
+        learner = LinearLearner(lambda_=0.1)
+        model = learner(sparseX, self.trainY)
+
+        return [model(x) for x in self.trainX]
+
+    def getPredictionsTest(self):
+        sparseX = scipy.sparse.csr_matrix(self.trainX)
+        learner = LinearLearner(lambda_=0.1)
+        model = learner(sparseX, self.trainY)
+
+        return [model(x) for x in self.testX]
+
+    def getMAETrain(self) -> float:
+        return meanAbsoluteError(self.getPredictionsTrain(), self.trainY)
+
+    def toOutput(self):
+        for departureTime, prediction in zip(self.testDepartureTimes, self.getPredictionsTest()):
+            print(departureTime + datetime.timedelta(seconds=prediction), file=OUT)
 
 
 def createRoutes() -> (Dict[int, Route], int):
@@ -175,10 +206,10 @@ def getNumberOfTestRows():
 
 if __name__ == "__main__":
 
-    OUT = open("out.txt", "w")
+    OUT = open("tekmovanjeOut.txt", "w")
 
-    TRAIN_PATH = "D:\Jakob\\3letnik\semester1\git\\UOZP\homework5_bus_prediction\data\\train_pred.csv.gz"
-    TEST_PATH = "D:\Jakob\\3letnik\semester1\git\\UOZP\homework5_bus_prediction\data\\test_pred.csv.gz"
+    TRAIN_PATH = "D:\Jakob\\3letnik\semester1\git\\UOZP\homework5_bus_prediction\data\\train.csv.gz"
+    TEST_PATH = "D:\Jakob\\3letnik\semester1\git\\UOZP\homework5_bus_prediction\data\\test.csv.gz"
     PRECIPITATION_PATH = "D:\Jakob\\3letnik\semester1\git\\UOZP\homework5_bus_prediction\data\\precipitation.csv"
 
     if platform.system() == "Linux":
@@ -201,7 +232,7 @@ if __name__ == "__main__":
     fillRoutes(TRAIN_PATH, None, True)
     fillRoutes(TEST_PATH, None, False)
 
-    for t in ROUTES[14].trainDepartureTimes:
-        print(t)
+    for r in ROUTES.values():
+        r.toOutput()
 
-    print("done!")
+print("done!")

@@ -61,7 +61,7 @@ def createData(path, numOfRows, numOfColumns, precipitationData, train):
 
         parsedDepartureDateTime = lpputils.parsedate(departureTime)
         departures.append(parsedDepartureDateTime)
-        X[i][columns[f"{parsedDepartureDateTime.weekday()}"]] = 1
+        X[i][columns[str(parsedDepartureDateTime.weekday())]] = 1
 
         time = parsedDepartureDateTime.time()
         seconds = (time.hour * 60 + time.minute) * 60 + time.second
@@ -111,7 +111,7 @@ def meanAbsoluteError(pred, true):
 
 if __name__ == "__main__":
 
-    OUT = open("out.txt", "w")
+    OUT = open("predtekmovanjeOut.txt", "w")
 
     TRAIN_PATH = "D:\Jakob\\3letnik\semester1\git\\UOZP\homework5_bus_prediction\data\\train_pred.csv.gz"
     TEST_PATH = "D:\Jakob\\3letnik\semester1\git\\UOZP\homework5_bus_prediction\data\\test_pred.csv.gz"
