@@ -20,6 +20,7 @@ class Route:
 
     def __init__(self, routeNum: int):
         self.routeNum = routeNum
+        self.model = None
 
         # columns for train and test data
         self.columns = {}
@@ -32,13 +33,6 @@ class Route:
         self.trainDepartureTimes = []
         self.trainRowsIndex = 0
 
-        # test data
-        self.testRowsCounter = 0
-        self.testX = None
-        self.testY = None
-        self.testDepartureTimes = []
-        self.testRowsIndex = 0
-
         # add participation columns
         self.addColumn("rain")
         self.addColumn("snow")
@@ -46,6 +40,10 @@ class Route:
         # add departure day of week columns
         for i in range(7):
             self.addColumn(str(i))
+
+        # add departure month
+        # for i in range(1, 13):
+        #     self.addColumn(str(i) + "month")
 
         # add departure time columns
         for i in range(0, 86400, TIME_INTERVAL):
@@ -58,9 +56,6 @@ class Route:
     def addTrainDepartureTime(self, departureTime: datetime):
         self.trainDepartureTimes.append(departureTime)
 
-    def addTestDepartureTime(self, departureTime: datetime):
-        self.testDepartureTimes.append(departureTime)
-
     # initializes trainMatrix with zeros
 
     def initTrainMatrix(self):
@@ -69,15 +64,11 @@ class Route:
 
     # initializes testMatrix with zeros
 
-    def initTestMatrix(self):
-        self.testX = np.zeros(shape=(self.testRowsCounter, self.columnsCounter))
-        self.testY = np.empty(self.testRowsCounter)
+    # def fillTrainMonth(self, departureTime: datetime):
+    #     self.trainX[self.trainRowsIndex][self.columns[str(departureTime.month) + "month"]] = 1
 
     def fillTrainDay(self, departureTime: datetime):
         self.trainX[self.trainRowsIndex][self.columns[str(departureTime.weekday())]] = 1
-
-    def fillTestDay(self, departureTime: datetime):
-        self.testX[self.testRowsIndex][self.columns[str(departureTime.weekday())]] = 1
 
     def fillTrainTime(self, departureTime: datetime):
         time = departureTime.time()
@@ -85,47 +76,39 @@ class Route:
         approximation = seconds - (seconds % TIME_INTERVAL)
         self.trainX[self.trainRowsIndex][self.columns[approximation]] = 1
 
-    def fillTestTime(self, departureTime: datetime):
-        time = departureTime.time()
-        seconds = (time.hour * 60 + time.minute) * 60 + time.second
-        approximation = seconds - (seconds % TIME_INTERVAL)
-        self.testX[self.testRowsIndex][self.columns[approximation]] = 1
-
     def fillTrainFirstStation(self, firstStation: str):
         self.trainX[self.trainRowsIndex][self.columns[firstStation]] = 1
-
-    def fillTestFirstStation(self, firstStation: str):
-        self.testX[self.testRowsIndex][self.columns[firstStation]] = 1
 
     def fillTrainLastStation(self, lastStation: str):
         self.trainX[self.trainRowsIndex][self.columns[lastStation]] = 1
 
-    def fillTestLastStation(self, lastStation: str):
-        self.testX[self.testRowsIndex][self.columns[lastStation]] = 1
-
     def fillTrainY(self, clazz: float):
         self.trainY[self.trainRowsIndex] = clazz
 
+    def setModel(self):
+        sparseX = scipy.sparse.csr_matrix(self.trainX)
+        learner = LinearLearner(lambda_=0.1)
+        self.model = learner(sparseX, self.trainY)
+
     def getPredictionsTrain(self):
-        sparseX = scipy.sparse.csr_matrix(self.trainX)
-        learner = LinearLearner(lambda_=0.1)
-        model = learner(sparseX, self.trainY)
+        return [self.model(x) for x in self.trainX]
 
-        return [model(x) for x in self.trainX]
-
-    def getPredictionsTest(self):
-        sparseX = scipy.sparse.csr_matrix(self.trainX)
-        learner = LinearLearner(lambda_=0.1)
-        model = learner(sparseX, self.trainY)
-
-        return [model(x) for x in self.testX]
+    def predict(self, x):
+        return self.model(x)
 
     def getMAETrain(self) -> float:
         return meanAbsoluteError(self.getPredictionsTrain(), self.trainY)
 
-    def toOutput(self):
-        for departureTime, prediction in zip(self.testDepartureTimes, self.getPredictionsTest()):
-            print(departureTime + datetime.timedelta(seconds=prediction), file=OUT)
+    # def getPredictionsTest(self):
+    #     sparseX = scipy.sparse.csr_matrix(self.trainX)
+    #     learner = LinearLearner(lambda_=0.1)
+    #     model = learner(sparseX, self.trainY)
+    #
+    #     return [model(x) for x in self.testX]
+
+    # def toOutput(self):
+    #     for departureTime, prediction in zip(self.testDepartureTimes, self.getPredictionsTest()):
+    #         print(departureTime + datetime.timedelta(seconds=prediction), file=OUT)
 
 
 def createRoutes() -> (Dict[int, Route], int):
@@ -159,7 +142,7 @@ def createRoutes() -> (Dict[int, Route], int):
     return routes
 
 
-def fillRoutes(path, precipitationData, train):
+def fillRoutes(path, precipitationData):
     f = gzip.open(path, "rt")
     reader = csv.reader(f, delimiter="\t")
     next(reader)
@@ -171,45 +154,40 @@ def fillRoutes(path, precipitationData, train):
         firstStation = firstStation.upper()
         lastStation = lastStation.upper()
         parsedDepartureTime = lpputils.parsedate(departureTime)
+        parsedArrivalTime = lpputils.parsedate(arrivalTime)
         route = ROUTES[routeNum]
+        if route.trainX is None:
+            route.initTrainMatrix()
 
-        if train:
-            parsedArrivalTime = lpputils.parsedate(arrivalTime)
-            route.addTrainDepartureTime(parsedDepartureTime)
-            route.fillTrainDay(parsedDepartureTime)
-            route.fillTrainTime(parsedDepartureTime)
-            route.fillTrainFirstStation(firstStation)
-            route.fillTrainLastStation(lastStation)
-            route.fillTrainY((parsedArrivalTime - parsedDepartureTime).total_seconds())
-            route.trainRowsIndex += 1
-        else:
-            route.addTestDepartureTime(parsedDepartureTime)
-            route.fillTestDay(parsedDepartureTime)
-            route.fillTestTime(parsedDepartureTime)
-            route.fillTestFirstStation(firstStation)
-            route.fillTestLastStation(lastStation)
-            route.testRowsIndex += 1
+        route.addTrainDepartureTime(parsedDepartureTime)
+        route.fillTrainDay(parsedDepartureTime)
+        # route.fillTrainMonth(parsedDepartureTime)
+        route.fillTrainTime(parsedDepartureTime)
+        route.fillTrainFirstStation(firstStation)
+        route.fillTrainLastStation(lastStation)
+        route.fillTrainY((parsedArrivalTime - parsedDepartureTime).total_seconds())
+        route.trainRowsIndex += 1
 
 
 # reads the test data and counts number of rows for each route
-def getNumberOfTestRows():
-    f = gzip.open(TEST_PATH, "rt")
-    reader = csv.reader(f, delimiter="\t")
-    next(reader)
-
-    for line in reader:
-        _, _, routeNum, _, _, _, _, _, _ = line
-
-        routeNum = int(routeNum)
-        ROUTES[routeNum].testRowsCounter += 1
+# def getNumberOfTestRows():
+#     f = gzip.open(TEST_PATH, "rt")
+#     reader = csv.reader(f, delimiter="\t")
+#     next(reader)
+#
+#     for line in reader:
+#         _, _, routeNum, _, _, _, _, _, _ = line
+#
+#         routeNum = int(routeNum)
+#         ROUTES[routeNum].testRowsCounter += 1
 
 
 if __name__ == "__main__":
 
     OUT = open("tekmovanjeOut.txt", "w")
 
-    TRAIN_PATH = "D:\Jakob\\3letnik\semester1\git\\UOZP\homework5_bus_prediction\data\\train.csv.gz"
-    TEST_PATH = "D:\Jakob\\3letnik\semester1\git\\UOZP\homework5_bus_prediction\data\\test.csv.gz"
+    TRAIN_PATH = "D:\Jakob\\3letnik\semester1\git\\UOZP\homework5_bus_prediction\data\\train_pred.csv.gz"
+    TEST_PATH = "D:\Jakob\\3letnik\semester1\git\\UOZP\homework5_bus_prediction\data\\test_pred.csv.gz"
     PRECIPITATION_PATH = "D:\Jakob\\3letnik\semester1\git\\UOZP\homework5_bus_prediction\data\\precipitation.csv"
 
     if platform.system() == "Linux":
@@ -217,22 +195,63 @@ if __name__ == "__main__":
         TEST_PATH = "/home/jakob/Documents/semester1_19-20/PI/homework5_bus_prediction/data/test.csv.gz"
         PRECIPITATION_PATH = "/home/jakob/Documents/semester1_19-20/PI/homework5_bus_prediction/data/precipitation.csv"
 
+    # HOLIDAYS_DAYS = [
+    #     datetime.datetime(2012, 1, 1),
+    #     datetime.datetime(2012, 1, 2),
+    #     datetime.datetime(2012, 2, 8),
+    #     datetime.datetime(2012, 4, 8),
+    #     datetime.datetime(2012, 4, 9),
+    #     datetime.datetime(2012, 4, 27),
+    #     datetime.datetime(2012, 5, 1),
+    #     datetime.datetime(2012, 5, 2),
+    #     datetime.datetime(2012, 6, 25),
+    #     datetime.datetime(2012, 8, 15),
+    #     datetime.datetime(2012, 9, 31),
+    #     datetime.datetime(2012, 10, 1),
+    #     datetime.datetime(2012, 12, 25),
+    #     datetime.datetime(2012, 12, 26),
+    # ]
+
     # 225
-    TIME_INTERVAL = 300
+    TIME_INTERVAL = 225
 
     ROUTES: Dict[int, Route] = createRoutes()
 
-    getNumberOfTestRows()
-
-    # initialize matrices for data (X, y)
-    for r in ROUTES.values():
-        r.initTrainMatrix()
-        r.initTestMatrix()
-
-    fillRoutes(TRAIN_PATH, None, True)
-    fillRoutes(TEST_PATH, None, False)
+    fillRoutes(TRAIN_PATH, None)
 
     for r in ROUTES.values():
-        r.toOutput()
+        r.setModel()
+        print(f"Route: {r.routeNum}, RowsCounter: {r.trainRowsCounter}, MAE: {r.getMAETrain()}")
 
-print("done!")
+    f = gzip.open(TEST_PATH, "rt")
+    fileReader = csv.reader(f, delimiter="\t")
+    next(fileReader)
+
+    for l in fileReader:
+        _, _, routeNumber, _, _, firstStation, departureTime, lastStation, arrivalTime = l
+        routeNumber = int(routeNumber)
+
+        r = ROUTES[routeNumber]
+
+        x = np.zeros(r.columnsCounter)
+
+        first = firstStation.upper()
+        last = lastStation.upper()
+
+        parsedDepartureTime = lpputils.parsedate(departureTime)
+        month = str(parsedDepartureTime.month) + "month"
+        time = parsedDepartureTime.time()
+        seconds = (time.hour * 60 + time.minute) * 60 + time.second
+        approx = seconds - (seconds % TIME_INTERVAL)
+
+        day = str(parsedDepartureTime.weekday())
+
+        x[r.columns[first]] = 1
+        x[r.columns[last]] = 1
+        # x[r.columns[month]] = 1
+        x[r.columns[approx]] = 1
+        x[r.columns[day]] = 1
+
+        print(parsedDepartureTime + datetime.timedelta(seconds=r.model(x)), file=OUT)
+
+    print("done!")
