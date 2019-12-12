@@ -1,0 +1,6 @@
+* Odjemalec spletne storitve
+  Projekt podaja primer preprostega odjemalca spletne storitve REST. Nekaj napotkov:
+
+  - Za izvedbo vaje potrebujete delujoč ključ API, ki ga prejmete z [[https://www.omdbapi.com/apikey.aspx][brezplačno registracijo.]] Prejet ključ nato dodajte v spremenljivko =API_KEY= v datoteki =MainActivity.kt=.
+  - Primere dodatnih iskalnih poizvedb lahko vidite na [[https://www.omdbapi.com][tej strani]].
+  - Poizvedbo lahko podate tudi preko terminala. Najprej namestite program =http= z ukazom =sudo apt update && sudo apt install http -y=, nato pa z njim podate poizvedbe. Denimo: =http http://www.omdbapi.com/?s=titanic&apikey=VAS_KLJUC_API=

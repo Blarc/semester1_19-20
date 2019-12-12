@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">android-ws</string>
+    <string name="title">Title</string>
+    <string name="search">Search</string>
+</resources>

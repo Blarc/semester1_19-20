@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">android-async-task</string>
+    <string name="start_btn">Start</string>
+    <string name="progress_text">[Progress]</string>
+</resources>
