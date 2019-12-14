@@ -1,5 +1,7 @@
 package aStar;
 
+import core.api.Saw;
+import core.api.SawDirection;
 import core.api.Unit;
 import core.api.commands.Direction;
 
@@ -17,17 +19,24 @@ public class Utils {
         return x > 0 ? x : -x;
     }
 
-    public static Direction getDirection(Point unit, Point point) {
-
-        if (unit.x < point.x) {
-            return Direction.RIGHT;
+    public static Point getNextSawPoint(Saw saw) {
+        Point point = new Point(saw.x, saw.y);
+        if (saw.direction == SawDirection.UP_LEFT) {
+            point.x -= 1;
+            point.y += 1;
         }
-        if (unit.x > point.x) {
-            return Direction.LEFT;
+        else if (saw.direction == SawDirection.UP_RIGHT) {
+            point.x += 1;
+            point.y += 1;
         }
-        if (unit.y < point.y) {
-            return Direction.UP;
+        else if (saw.direction == SawDirection.DOWN_LEFT) {
+            point.x -= 1;
+            point.y -= 1;
         }
-        return Direction.DOWN;
+        else {
+            point.x += 1;
+            point.y -= 1;
+        }
+        return point;
     }
 }

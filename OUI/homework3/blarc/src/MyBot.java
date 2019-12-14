@@ -7,12 +7,16 @@ import core.api.commands.Direction;
 
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Stack;
+import java.util.stream.Collectors;
 
 /**
  * Example Java bot implementation for Planet Lia Bounce Evasion.
  */
 public class MyBot implements Bot {
+
+    private static final int SAW_DISTANCE = 4;
 
     private AStar aStar;
 
@@ -42,20 +46,30 @@ public class MyBot implements Bot {
         coin = getClosestCoin(unit, state.coins);
 
         if (path.empty()) {
-            long startTime = System.currentTimeMillis();
-
             path = new AStarPath(this.aStar, unit, coin).findPath();
+        }
 
-            long endTime = System.currentTimeMillis();
-            System.out.println("Time: " + (endTime - startTime) + " ms");
+        Point nextPoint = path.peek();
+        List<Saw> closeSaws = getCloseSaws(nextPoint, state.saws);
+        if (sawCheck(nextPoint, closeSaws)) {
+            Direction newDir = Arrays.stream(Direction.values())
+                    .filter(dir -> {
+                        Point tmp = nextPoint.translate(dir);
+                        return aStar.isValid(tmp) && sawCheck(tmp, closeSaws);
+                    })
+                    .findFirst()
+                    .orElse(null);
+            if (newDir == null) {
+                return;
+            }
+            else {
+                path.push(nextPoint.translate(newDir));
+                path.push(nextPoint.translate(newDir.getInverse()));
+            }
         }
 
 
-        Point point = path.pop();
-
-        Direction dir = Utils.getDirection(unit, point);
-
-        response.moveUnit(dir);
+        response.moveUnit(unit.getDirection(path.pop()));
 
     }
 
@@ -65,6 +79,17 @@ public class MyBot implements Bot {
                 .map(c -> new Point(c))
                 .min(Comparator.comparingInt(c -> c.manhattan(unit)))
                 .orElse(unit);
+    }
+
+    private boolean sawCheck(Point point, List<Saw> saws) {
+        return saws.stream()
+                .anyMatch(saw -> Utils.getNextSawPoint(saw).equals(point));
+    }
+
+    private List<Saw> getCloseSaws(Point point, Saw[] saws) {
+        return Arrays.stream(saws)
+                .filter(saw -> point.manhattan(new Point(saw.x, saw.y)) < SAW_DISTANCE)
+                .collect(Collectors.toList());
     }
 
     // Connects your bot to match generator, don't change it.

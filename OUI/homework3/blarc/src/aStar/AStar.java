@@ -66,6 +66,13 @@ public class AStar {
         return nodes[point.y][point.x];
     }
 
+    public boolean isValid(Point point) {
+        if (point.x >= 0 && point.x < data.mapWidth && point.y >= 0 && point.y < data.mapHeight) {
+            return nodes[point.y][point.x] != null;
+        }
+        return false;
+    }
+
     public void reset() {
         for (int y = 0; y < data.mapHeight; y++) {
             for (int x = 0; x < data.mapWidth; x++) {
