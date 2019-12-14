@@ -1,14 +1,26 @@
+import aStar.AStar;
+import aStar.AStarPath;
 import com.google.gson.Gson;
 import core.*;
 import core.api.*;
 import core.api.commands.Direction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Stack;
 
 /**
  * Example Java bot implementation for Planet Lia Bounce Evasion.
  */
 public class MyBot implements Bot {
 
-    InitialData data;
+    private InitialData data;
+
+    private AStar aStar;
+
+    private Coin coin;
+
+    private Stack<Direction> path;
 
     // Called only once before the match starts. It holds the
     // data that you may need before the game starts.
@@ -24,6 +36,8 @@ public class MyBot implements Bot {
             }
             System.out.println();
         }
+
+        this.aStar = new AStar(data);
     }
 
     // Called repeatedly while the match is generating. Each
@@ -34,34 +48,24 @@ public class MyBot implements Bot {
         // Find and send your unit to a random direction that
         // moves it to a valid field on the map
         // TODO: Remove this code and implement a proper path finding!
-        while (true) {
-            double rand = Math.random();
 
-            // Pick a random direction to move
-            Direction direction;
-            if (rand < 0.25) direction = Direction.LEFT;
-            else if (rand < 0.5) direction = Direction.RIGHT;
-            else if (rand < 0.75) direction = Direction.UP;
-            else direction = Direction.DOWN;
-
-            // Find on which position this move will send your unit
-            int newX, newY;
-
-            if (direction == Direction.LEFT) newX = state.yourUnit.x - 1;
-            else if (direction == Direction.RIGHT) newX = state.yourUnit.x + 1;
-            else newX = state.yourUnit.x;
-
-            if (direction == Direction.UP) newY = state.yourUnit.y + 1;
-            else if (direction == Direction.DOWN) newY = state.yourUnit.y - 1;
-            else newY = state.yourUnit.y;
-
-            // If the new position is on the map then send the unit towards
-            // that direction and break the loop, else try again
-            if (newX >= 0 && newY >= 0 && newX < data.mapWidth && newY < data.mapHeight && data.map[newY][newX]) {
-                response.moveUnit(direction);
-                break;
-            }
+        Coin currentCoin = state.coins[0];
+        if (coin == null && currentCoin != null) {
+            coin = currentCoin;
+            AStarPath aStarPath = new AStarPath(this.aStar);
+            aStarPath.setStart(state.yourUnit.x, state.yourUnit.y);
+            aStarPath.setEnd(state.coins[0].x, state.coins[0].y);
+            path = aStarPath.findPath();
         }
+
+        if (!path.empty()) {
+            Direction dir = path.pop();
+            System.out.println(dir.toString());
+            response.moveUnit(dir);
+        } else {
+            coin = null;
+        }
+
     }
 
     // Connects your bot to match generator, don't change it.
