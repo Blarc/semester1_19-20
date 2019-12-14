@@ -1,5 +1,7 @@
 package aStar;
 
+import core.api.Coin;
+import core.api.Unit;
 import core.api.commands.Direction;
 
 import java.util.PriorityQueue;
@@ -7,29 +9,18 @@ import java.util.Stack;
 
 public class AStarPath {
 
-    private Node[][] nodes;
-
-    private Node start;
     private Node end;
 
     private PriorityQueue<Node> openNodes;
 
-    public AStarPath(AStar aStar) {
+    public AStarPath(AStar aStar, Point unit, Point coin) {
         aStar.reset();
-        this.nodes = aStar.getNodes();
         this.openNodes = new PriorityQueue<>();
+        openNodes.add(aStar.getNode(unit));
+        this.end = aStar.getNode(coin);
     }
 
-    public void setStart(int x, int y) {
-        this.start = nodes[y][x];
-        openNodes.add(start);
-    }
-
-    public void setEnd(int x, int y) {
-        this.end = nodes[y][x];
-    }
-
-    public Stack<Direction> findPath() {
+    public Stack<Point> findPath() {
 
         while(!openNodes.isEmpty()) {
             Node current = openNodes.poll();
@@ -57,22 +48,11 @@ public class AStarPath {
         });
     }
 
-    private Stack<Direction> getPath(Node currentNode) {
-        Stack<Direction> path = new Stack<>();
+    private Stack<Point> getPath(Node currentNode) {
+        Stack<Point> path = new Stack<>();
         Node parent;
         while ((parent = currentNode.getParent()) != null) {
-            if (parent.x < currentNode.x) {
-                path.push(Direction.RIGHT);
-            }
-            if (parent.x > currentNode.x) {
-                path.push(Direction.LEFT);
-            }
-            if (parent.y < currentNode.y) {
-                path.push(Direction.UP);
-            }
-            if (parent.y > currentNode.y) {
-                path.push(Direction.DOWN);
-            }
+            path.push(new Point(currentNode.x, currentNode.y));
             currentNode = parent;
         }
 

@@ -62,6 +62,10 @@ public class AStar {
         node.setNeighbours(neighbours);
     }
 
+    public Node getNode(Point point) {
+        return nodes[point.y][point.x];
+    }
+
     public void reset() {
         for (int y = 0; y < data.mapHeight; y++) {
             for (int x = 0; x < data.mapWidth; x++) {
@@ -71,10 +75,5 @@ public class AStar {
                 }
             }
         }
-    }
-
-
-    public Node[][] getNodes() {
-        return nodes;
     }
 }

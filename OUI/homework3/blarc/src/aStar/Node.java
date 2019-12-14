@@ -73,13 +73,8 @@ public class Node implements Comparable<Node> {
         return this.type == NodeType.CLOSED;
     }
 
-    // Manhattan distance
     public int cost(Node node) {
-        return abs(this.x - node.x) + abs(this.y - node.y);
-    }
-
-    private int abs(int a) {
-        return a > 0 ? a : -a;
+        return Utils.manhattan(this.x, this.y, node.x, node.y);
     }
 
     @Override
