@@ -21,6 +21,10 @@ class Route:
     def __init__(self, routeNum: int):
         self.routeNum = routeNum
         self.model = None
+        self.start = ""
+        self.end = ""
+        self.dir = ""
+        self.timeInterval = TIME_INTERVAL
 
         # columns for train and test data
         self.columns = {}
@@ -34,8 +38,8 @@ class Route:
         self.trainRowsIndex = 0
 
         # add participation columns
-        self.addColumn("rain")
-        self.addColumn("snow")
+        # self.addColumn("rain")
+        # self.addColumn("snow")
 
         # add departure day of week columns
         for i in range(7):
@@ -46,7 +50,12 @@ class Route:
         #     self.addColumn(str(i) + "month")
 
         # add departure time columns
-        for i in range(0, 86400, TIME_INTERVAL):
+        # for i in range(0, 86400, TIME_INTERVAL):
+        #     self.addColumn(i)
+
+    def addTimeColumns(self, timeInterval):
+        self.timeInterval = timeInterval
+        for i in range(0, 86400, timeInterval):
             self.addColumn(i)
 
     def addColumn(self, col):
@@ -73,7 +82,7 @@ class Route:
     def fillTrainTime(self, departureTime: datetime):
         time = departureTime.time()
         seconds = (time.hour * 60 + time.minute) * 60 + time.second
-        approximation = seconds - (seconds % TIME_INTERVAL)
+        approximation = seconds - (seconds % self.timeInterval)
         self.trainX[self.trainRowsIndex][self.columns[approximation]] = 1
 
     def fillTrainFirstStation(self, firstStation: str):
@@ -121,28 +130,31 @@ def createRoutes() -> (Dict[int, Route], int):
     for line in reader:
         registration, driverId, routeNum, routeDir, routeDesc, firstStation, departureTime, lastStation, arrivalTime = line
 
-        routeNum = int(routeNum)
+        routeDir = routeDir.upper()
         firstStation = firstStation.upper()
-        lastStation = lastStation.upper()
 
         # add route to routes if it doesn't exist
-        if routeNum not in routes:
-            routes[routeNum] = Route(routeNum)
+        if routeDir not in routes:
+            routes[routeDir] = Route(int(routeNum))
+            routes[routeDir].start = firstStation
+            routes[routeDir].end = lastStation.upper()
+            routes[routeDir].dir = routeDir
 
-        route = routes[routeNum]
+        route = routes[routeDir]
         route.trainRowsCounter += 1
 
-        # add columns related to data
-        if firstStation not in route.columns:
-            route.addColumn(firstStation)
-
-        if lastStation not in route.columns:
-            route.addColumn(lastStation)
+    for route in routes.values():
+        # 2500
+        # 64
+        if route.trainRowsCounter < 2500:
+            route.addTimeColumns(1200)
+        else:
+            route.addTimeColumns(TIME_INTERVAL)
 
     return routes
 
 
-def fillRoutes(path, precipitationData):
+def fillRoutes(path):
     f = gzip.open(path, "rt")
     reader = csv.reader(f, delimiter="\t")
     next(reader)
@@ -150,12 +162,11 @@ def fillRoutes(path, precipitationData):
     for line in reader:
         registration, driverId, routeNum, routeDir, routeDisc, firstStation, departureTime, lastStation, arrivalTime = line
 
-        routeNum = int(routeNum)
-        firstStation = firstStation.upper()
-        lastStation = lastStation.upper()
+        routeDir = routeDir.upper()
         parsedDepartureTime = lpputils.parsedate(departureTime)
         parsedArrivalTime = lpputils.parsedate(arrivalTime)
-        route = ROUTES[routeNum]
+
+        route = ROUTES[routeDir]
         if route.trainX is None:
             route.initTrainMatrix()
 
@@ -163,8 +174,6 @@ def fillRoutes(path, precipitationData):
         route.fillTrainDay(parsedDepartureTime)
         # route.fillTrainMonth(parsedDepartureTime)
         route.fillTrainTime(parsedDepartureTime)
-        route.fillTrainFirstStation(firstStation)
-        route.fillTrainLastStation(lastStation)
         route.fillTrainY((parsedArrivalTime - parsedDepartureTime).total_seconds())
         route.trainRowsIndex += 1
 
@@ -186,8 +195,8 @@ if __name__ == "__main__":
 
     OUT = open("tekmovanjeOut.txt", "w")
 
-    TRAIN_PATH = "D:\Jakob\\3letnik\semester1\git\\UOZP\homework5_bus_prediction\data\\train_pred.csv.gz"
-    TEST_PATH = "D:\Jakob\\3letnik\semester1\git\\UOZP\homework5_bus_prediction\data\\test_pred.csv.gz"
+    TRAIN_PATH = "D:\Jakob\\3letnik\semester1\git\\UOZP\homework5_bus_prediction\data\\trainB.csv.gz"
+    TEST_PATH = "D:\Jakob\\3letnik\semester1\git\\UOZP\homework5_bus_prediction\data\\testB.csv.gz"
     PRECIPITATION_PATH = "D:\Jakob\\3letnik\semester1\git\\UOZP\homework5_bus_prediction\data\\precipitation.csv"
 
     if platform.system() == "Linux":
@@ -217,41 +226,49 @@ if __name__ == "__main__":
 
     ROUTES: Dict[int, Route] = createRoutes()
 
-    fillRoutes(TRAIN_PATH, None)
+    fillRoutes(TRAIN_PATH)
 
     for r in ROUTES.values():
         r.setModel()
-        print(f"Route: {r.routeNum}, RowsCounter: {r.trainRowsCounter}, MAE: {r.getMAETrain()}")
+        # print(
+        #     f"Route: {r.routeNum}, Dir:{r.dir}, Start:{r.start}, End:{r.end} RowsCounter: {r.trainRowsCounter}, MAE: {r.getMAETrain()}")
 
     f = gzip.open(TEST_PATH, "rt")
     fileReader = csv.reader(f, delimiter="\t")
     next(fileReader)
 
+    predictionsTest = []
+    realTest = []
+
     for l in fileReader:
-        _, _, routeNumber, _, _, firstStation, departureTime, lastStation, arrivalTime = l
-        routeNumber = int(routeNumber)
+        _, _, routeNumber, routeDir, _, _, departureTime, lastStation, arrivalTime = l
 
-        r = ROUTES[routeNumber]
+        routeDir = routeDir.upper()
 
-        x = np.zeros(r.columnsCounter)
+        if routeDir in ROUTES:
+            r = ROUTES[routeDir]
 
-        first = firstStation.upper()
-        last = lastStation.upper()
+            x = np.zeros(r.columnsCounter)
 
-        parsedDepartureTime = lpputils.parsedate(departureTime)
-        month = str(parsedDepartureTime.month) + "month"
-        time = parsedDepartureTime.time()
-        seconds = (time.hour * 60 + time.minute) * 60 + time.second
-        approx = seconds - (seconds % TIME_INTERVAL)
+            parsedDepartureTime = lpputils.parsedate(departureTime)
+            # month = str(parsedDepartureTime.month) + "month"
+            time = parsedDepartureTime.time()
+            seconds = (time.hour * 60 + time.minute) * 60 + time.second
+            approx = seconds - (seconds % r.timeInterval)
 
-        day = str(parsedDepartureTime.weekday())
+            day = str(parsedDepartureTime.weekday())
 
-        x[r.columns[first]] = 1
-        x[r.columns[last]] = 1
-        # x[r.columns[month]] = 1
-        x[r.columns[approx]] = 1
-        x[r.columns[day]] = 1
+            x[r.columns[approx]] = 1
+            x[r.columns[day]] = 1
 
-        print(parsedDepartureTime + datetime.timedelta(seconds=r.model(x)), file=OUT)
+            predTime = r.model(x)
+            predictionsTest.append(predTime)
+
+            realTime = (lpputils.parsedate(arrivalTime) - parsedDepartureTime).total_seconds()
+            realTest.append(realTime)
+
+    # print(parsedDepartureTime + datetime.timedelta(seconds=r.model(x)), file=OUT)
+
+    print(meanAbsoluteError(predictionsTest, realTest))
 
     print("done!")
