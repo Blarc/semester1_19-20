@@ -141,9 +141,9 @@ if __name__ == "__main__":
     predictions = [model(x) for x in trainX]
     print(meanAbsoluteError(predictions, trainY))
 
-    # for index, x in enumerate(testX):
-    #     arrivalTimePred = lpputils.tsadd(testDepartureTimes[index], model(x))
-    #     print(arrivalTimePred)
-    #     print(arrivalTimePred, file=OUT)
+    for index, x in enumerate(testX):
+        arrivalTimePred = lpputils.tsadd(testDepartureTimes[index], model(x))
+        print(arrivalTimePred)
+        print(arrivalTimePred, file=OUT)
 
     print("done!")

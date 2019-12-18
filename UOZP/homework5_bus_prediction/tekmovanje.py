@@ -181,8 +181,8 @@ if __name__ == "__main__":
 
     OUT = open("tekmovanjeOut.txt", "w")
 
-    TRAIN_PATH = "D:\Jakob\\3letnik\semester1\git\\UOZP\homework5_bus_prediction\data\\train.csv.gz"
-    TEST_PATH = "D:\Jakob\\3letnik\semester1\git\\UOZP\homework5_bus_prediction\data\\test.csv.gz"
+    TRAIN_PATH = "D:\Jakob\\3letnik\semester1\git\\UOZP\homework5_bus_prediction\data\\train_pred.csv.gz"
+    TEST_PATH = "D:\Jakob\\3letnik\semester1\git\\UOZP\homework5_bus_prediction\data\\test_pred.csv.gz"
     PRECIPITATION_PATH = "D:\Jakob\\3letnik\semester1\git\\UOZP\homework5_bus_prediction\data\\precipitation.csv"
 
     if platform.system() == "Linux":
@@ -208,7 +208,7 @@ if __name__ == "__main__":
     # ]
 
     # 225
-    TIME_INTERVAL = 150
+    TIME_INTERVAL = 225
 
     ROUTES: Dict[int, Route] = createRoutes()
 
@@ -216,8 +216,8 @@ if __name__ == "__main__":
 
     for r in ROUTES.values():
         r.setModel()
-        # print(
-        #     f"Route: {r.routeNum}, Dir:{r.dir}, Start:{r.start}, End:{r.end} RowsCounter: {r.trainRowsCounter}, MAE: {r.getMAETrain()}")
+        print(
+            f"Route: {r.routeNum}, Dir:{r.dir}, Start:{r.start}, End:{r.end} RowsCounter: {r.trainRowsCounter}, MAE: {r.getMAETrain()}")
 
     f = gzip.open(TEST_PATH, "rt")
     fileReader = csv.reader(f, delimiter="\t")
