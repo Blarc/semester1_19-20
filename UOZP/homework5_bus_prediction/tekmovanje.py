@@ -24,7 +24,6 @@ class Route:
         self.start = ""
         self.end = ""
         self.dir = ""
-        self.timeInterval = TIME_INTERVAL
 
         # columns for train and test data
         self.columns = {}
@@ -50,12 +49,7 @@ class Route:
         #     self.addColumn(str(i) + "month")
 
         # add departure time columns
-        # for i in range(0, 86400, TIME_INTERVAL):
-        #     self.addColumn(i)
-
-    def addTimeColumns(self, timeInterval):
-        self.timeInterval = timeInterval
-        for i in range(0, 86400, timeInterval):
+        for i in range(0, 86400, TIME_INTERVAL):
             self.addColumn(i)
 
     def addColumn(self, col):
@@ -82,7 +76,7 @@ class Route:
     def fillTrainTime(self, departureTime: datetime):
         time = departureTime.time()
         seconds = (time.hour * 60 + time.minute) * 60 + time.second
-        approximation = seconds - (seconds % self.timeInterval)
+        approximation = seconds - (seconds % TIME_INTERVAL)
         self.trainX[self.trainRowsIndex][self.columns[approximation]] = 1
 
     def fillTrainFirstStation(self, firstStation: str):
@@ -143,14 +137,6 @@ def createRoutes() -> (Dict[int, Route], int):
         route = routes[routeDir]
         route.trainRowsCounter += 1
 
-    for route in routes.values():
-        # 2500
-        # 64
-        if route.trainRowsCounter < 2500:
-            route.addTimeColumns(1200)
-        else:
-            route.addTimeColumns(TIME_INTERVAL)
-
     return routes
 
 
@@ -195,8 +181,8 @@ if __name__ == "__main__":
 
     OUT = open("tekmovanjeOut.txt", "w")
 
-    TRAIN_PATH = "D:\Jakob\\3letnik\semester1\git\\UOZP\homework5_bus_prediction\data\\trainB.csv.gz"
-    TEST_PATH = "D:\Jakob\\3letnik\semester1\git\\UOZP\homework5_bus_prediction\data\\testB.csv.gz"
+    TRAIN_PATH = "D:\Jakob\\3letnik\semester1\git\\UOZP\homework5_bus_prediction\data\\train.csv.gz"
+    TEST_PATH = "D:\Jakob\\3letnik\semester1\git\\UOZP\homework5_bus_prediction\data\\test.csv.gz"
     PRECIPITATION_PATH = "D:\Jakob\\3letnik\semester1\git\\UOZP\homework5_bus_prediction\data\\precipitation.csv"
 
     if platform.system() == "Linux":
@@ -222,7 +208,7 @@ if __name__ == "__main__":
     # ]
 
     # 225
-    TIME_INTERVAL = 225
+    TIME_INTERVAL = 150
 
     ROUTES: Dict[int, Route] = createRoutes()
 
@@ -245,30 +231,30 @@ if __name__ == "__main__":
 
         routeDir = routeDir.upper()
 
-        if routeDir in ROUTES:
-            r = ROUTES[routeDir]
+        # if routeDir in ROUTES:
+        r = ROUTES[routeDir]
 
-            x = np.zeros(r.columnsCounter)
+        x = np.zeros(r.columnsCounter)
 
-            parsedDepartureTime = lpputils.parsedate(departureTime)
-            # month = str(parsedDepartureTime.month) + "month"
-            time = parsedDepartureTime.time()
-            seconds = (time.hour * 60 + time.minute) * 60 + time.second
-            approx = seconds - (seconds % r.timeInterval)
+        parsedDepartureTime = lpputils.parsedate(departureTime)
+        # month = str(parsedDepartureTime.month) + "month"
+        time = parsedDepartureTime.time()
+        seconds = (time.hour * 60 + time.minute) * 60 + time.second
+        approx = seconds - (seconds % TIME_INTERVAL)
 
-            day = str(parsedDepartureTime.weekday())
+        day = str(parsedDepartureTime.weekday())
 
-            x[r.columns[approx]] = 1
-            x[r.columns[day]] = 1
+        x[r.columns[approx]] = 1
+        x[r.columns[day]] = 1
 
-            predTime = r.model(x)
-            predictionsTest.append(predTime)
+        # predTime = r.model(x)
+        # predictionsTest.append(predTime)
+        #
+        # realTime = (lpputils.parsedate(arrivalTime) - parsedDepartureTime).total_seconds()
+        # realTest.append(realTime)
 
-            realTime = (lpputils.parsedate(arrivalTime) - parsedDepartureTime).total_seconds()
-            realTest.append(realTime)
+        print(parsedDepartureTime + datetime.timedelta(seconds=r.model(x)), file=OUT)
 
-    # print(parsedDepartureTime + datetime.timedelta(seconds=r.model(x)), file=OUT)
+# print(meanAbsoluteError(predictionsTest, realTest))
 
-    print(meanAbsoluteError(predictionsTest, realTest))
-
-    print("done!")
+print("done!")
