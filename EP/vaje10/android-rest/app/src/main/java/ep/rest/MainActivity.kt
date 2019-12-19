@@ -33,6 +33,7 @@ class MainActivity : AppCompatActivity(), Callback<List<Book>> {
 
         container.setOnRefreshListener { BookService.instance.getAll().enqueue(this) }
 
+        // should be add
         btnSave.setOnClickListener {
             val intent = Intent(this, BookFormActivity::class.java)
             startActivity(intent)

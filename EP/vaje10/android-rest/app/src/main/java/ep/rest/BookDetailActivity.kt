@@ -49,10 +49,16 @@ class BookDetailActivity : AppCompatActivity(), Callback<Book> {
 
     private fun deleteBook() {
 
-        val id = intent.getIntExtra("ep.rest.id", 0)
+        book?.let {
+            BookService.instance.delete(it.id).enqueue(object : Callback<Void?> {
+                override fun onFailure(call: Call<Void?>, t: Throwable) {
+                    Log.w(TAG, "Napaka: ${t.localizedMessage}")
+                }
 
-        if (id > 0) {
-            BookService.instance.delete(id)
+                override fun onResponse(call: Call<Void?>, response: Response<Void?>) {
+                    startActivity(Intent(this@BookDetailActivity, MainActivity::class.java))
+                }
+            })
         }
     }
 
