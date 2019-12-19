@@ -51,7 +51,7 @@ public class MyBot implements Bot {
 
         Point nextPoint = path.peek();
         List<Saw> closeSaws = getCloseSaws(nextPoint, state.saws);
-        if (sawCheck(nextPoint, closeSaws)) {
+        if (sawCheck(nextPoint, getCloseSaws(nextPoint, state.saws))) {
             Direction newDir = Arrays.stream(Direction.values())
                     .filter(dir -> {
                         Point tmp = nextPoint.translate(dir);
